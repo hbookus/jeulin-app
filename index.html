@@ -1,0 +1,469 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#3e5c73">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Jeulin">
+<meta name="robots" content="noindex, nofollow">
+<title>Relevé de pose</title>
+<style>
+:root{
+  --fond:#eef1f4; --carte:#fff; --texte:#1f2933; --doux:#667085; --trait:#d5d9e0;
+  --bleu:#3e5c73; --bleu-clair:#e6edf2; --vert:#49817b; --jaune:#f2b705; --rouge:#bd432a;
+  --rc:#dcefe4; --e1:#dde9f7; --e2:#f6e6d3; --e3:#ecdff4;
+}
+@media (prefers-color-scheme: dark){
+  :root{--fond:#111418; --carte:#1c2228; --texte:#e6e9ed; --doux:#9aa4b1; --trait:#323b45; --bleu:#8fb3cc; --bleu-clair:#22313d}
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--fond);color:var(--texte);font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+.appli{max-width:480px;margin:0 auto;min-height:100vh;background:var(--fond);display:flex;flex-direction:column}
+@media (min-width:600px){
+  body{padding:24px 0}
+  .appli{min-height:860px;border-radius:28px;border:10px solid #22282f;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,.25)}
+}
+.proto{background:var(--jaune);color:#1f2933;font-size:12px;font-weight:700;text-align:center;padding:4px 8px;letter-spacing:.3px}
+header{background:var(--bleu);color:#fff;padding:14px 16px 12px}
+@media (prefers-color-scheme: dark){header{background:#2a3d4c}}
+header h1{margin:0;font-size:18px}
+header .ou{font-size:13px;opacity:.85;margin-top:2px;min-height:18px}
+.etapes{display:flex;gap:4px;margin-top:10px}
+.etapes span{flex:1;height:5px;border-radius:3px;background:rgba(255,255,255,.3)}
+.etapes span.faite{background:#fff}
+main{flex:1;padding:16px;overflow-y:auto}
+h2{font-size:20px;margin:0 0 4px}
+p.aide{color:var(--doux);margin:0 0 14px;font-size:15px}
+.liste{display:flex;flex-direction:column;gap:10px}
+.choix{display:block;width:100%;text-align:left;background:var(--carte);border:1px solid var(--trait);border-radius:14px;padding:14px 16px;font:inherit;color:inherit;cursor:pointer}
+.choix b{display:block;font-size:17px}
+.choix small{color:var(--doux)}
+.choix:active{transform:scale(.99)}
+.sous{margin:8px 0 0 12px;display:flex;flex-direction:column;gap:8px}
+.sous .choix{padding:11px 14px;border-left:4px solid var(--bleu)}
+.qr{opacity:.55;border-style:dashed}
+.bas{position:sticky;bottom:0;background:var(--fond);padding:12px 16px calc(12px + env(safe-area-inset-bottom));border-top:1px solid var(--trait);display:flex;gap:10px}
+.btn{flex:1;border:none;border-radius:12px;padding:14px;font:600 16px/1 inherit;font-family:inherit;cursor:pointer;background:var(--bleu);color:#fff;text-align:center;text-decoration:none}
+.btn.second{background:var(--carte);color:var(--texte);border:1px solid var(--trait);flex:0 0 auto;padding:14px 18px}
+.btn[disabled]{opacity:.4;cursor:not-allowed}
+.gros-photo{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;height:220px;border:2px dashed var(--trait);border-radius:16px;background:var(--carte);cursor:pointer;color:var(--bleu);font-weight:600;font-size:17px}
+.gros-photo svg{width:56px;height:56px}
+input[type=file]{position:absolute;left:-9999px}
+.lien{background:none;border:none;color:var(--bleu);font:inherit;text-decoration:underline;cursor:pointer;padding:8px 0}
+.scene{position:relative;border-radius:12px;overflow:hidden;background:#000;touch-action:none;user-select:none}
+.scene img{display:block;width:100%}
+.scene.sans-photo{background:repeating-linear-gradient(45deg,#cfd5db 0 12px,#c3cad1 12px 24px);aspect-ratio:4/3}
+.cadre{position:absolute;border:2px solid var(--jaune);box-shadow:0 0 0 999px rgba(0,0,0,.35);display:grid}
+.cadre .c{border:1px solid rgba(242,183,5,.75);display:flex;align-items:flex-start;justify-content:flex-start;padding:2px;font-size:10px;font-weight:700;color:#fff;text-shadow:0 1px 2px #000;cursor:pointer;overflow:hidden}
+.cadre .c.vide{background:rgba(0,0,0,.35)}
+.cadre .c.choisie{background:rgba(73,129,123,.65);border-color:#fff}
+.poignee{position:absolute;width:30px;height:30px;margin:-15px 0 0 -15px;border-radius:50%;background:var(--jaune);border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.4);touch-action:none;cursor:grab;z-index:2}
+.scene.verrou .poignee{display:none}
+.grille{display:grid;gap:4px;margin-top:14px;background:#7d8791;padding:5px;border-radius:8px}
+.grille button{border:1px solid #9aa3ad;border-radius:4px;background:linear-gradient(160deg,#eef0f2,#d3d9df);font:inherit;color:#1f2933;padding:5px 3px;min-height:52px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.15}
+.grille button b{font-size:13px}
+.grille button small{font-size:10px;color:#475467}
+.grille button.choisie{background:var(--vert);color:#fff;border-color:#fff}
+.grille button.choisie small{color:#e6f2ef}
+.grille button[disabled]{background:repeating-linear-gradient(135deg,#d3d9df 0 6px,#e5e9ec 6px 12px);color:#8a939c;cursor:default}
+.compte{margin-top:10px;font-weight:600;color:var(--vert)}
+.fiche{background:var(--carte);border:1px solid var(--trait);border-radius:14px;padding:12px 14px;margin-bottom:12px}
+.fiche .tete{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.fiche .tete b{font-size:17px}
+.fiche .tete span{color:var(--doux);font-size:13px}
+.puces{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+.puce{border:1px solid var(--trait);background:var(--fond);color:var(--texte);border-radius:999px;padding:8px 12px;font:inherit;font-size:14px;cursor:pointer}
+.puce[aria-pressed=true]{background:var(--bleu);border-color:var(--bleu);color:#fff}
+.fiche label{font-size:13px;color:var(--doux);display:block}
+.fiche input[type=text]{width:100%;margin-top:4px;padding:11px 12px;border:1px solid var(--trait);border-radius:10px;font:inherit;background:var(--fond);color:var(--texte);text-transform:uppercase}
+.facture{background:#fff;color:#1f2933;border-radius:10px;padding:14px;font-size:13px;border:1px solid var(--trait)}
+.facture h3{margin:0;font-size:16px}
+.facture .ent{display:flex;justify-content:space-between;gap:10px;margin:6px 0 10px;color:#475467}
+.facture table{width:100%;border-collapse:collapse}
+.facture th,.facture td{border-bottom:1px solid #e3e6ea;padding:5px 3px;text-align:left;vertical-align:top}
+.facture th{font-size:11px;color:#667085;text-transform:uppercase}
+.facture td.n,.facture th.n{text-align:right;white-space:nowrap}
+.facture .tot{margin-top:10px;text-align:right}
+.facture .tot b{font-size:18px}
+.facture .mention{margin-top:10px;font-size:11px;color:#667085;border-top:1px dashed #cfd5db;padding-top:8px}
+.mini-photo{width:100%;max-height:140px;object-fit:cover;border-radius:6px;margin-top:8px}
+.ok{background:#e3f1ee;color:#24564f;border-radius:10px;padding:10px 12px;font-size:14px;margin-top:12px;display:none}
+.ok.visible{display:block}
+.resume-pl{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.resume-pl span{background:var(--carte);border:1px solid var(--trait);border-radius:10px;padding:6px 10px;font-size:13px}
+.resume-pl b{font-size:16px;margin-right:4px}
+.bascule-vue{display:flex;background:var(--carte);border:1px solid var(--trait);border-radius:12px;padding:3px;margin-bottom:14px}
+.bascule-vue button{flex:1;border:none;background:none;border-radius:9px;padding:9px;font:600 14px inherit;font-family:inherit;color:var(--doux);cursor:pointer}
+.bascule-vue button[aria-pressed=true]{background:var(--bleu);color:#fff}
+.groupe{margin-bottom:18px}
+.groupe h3{font-size:16px;margin:0 0 2px}
+.groupe .spec{font-size:13px;color:var(--doux);margin-bottom:8px}
+.pl-ligne{background:var(--carte);border:1px solid var(--trait);border-radius:12px;padding:10px 12px;margin-bottom:8px}
+.pl-ligne.faite{opacity:.55}
+.pl-ligne .quoi{font-size:13px;color:var(--doux);margin-bottom:6px;display:flex;justify-content:space-between;gap:8px}
+.pl-ligne .quoi b{color:var(--texte)}
+.plaque-vue{display:flex;align-items:center;justify-content:center;max-width:100%;border-radius:2px;
+  background:linear-gradient(180deg,#e9ebee,#c7ccd2 55%,#dfe2e6);border:1px solid #9aa3ad;color:#14181d;font-weight:700;letter-spacing:.06em;
+  white-space:nowrap;overflow:hidden;text-transform:uppercase;box-shadow:0 1px 2px rgba(0,0,0,.2);font-family:"Helvetica Neue",Arial,sans-serif}
+.plaque-vue.abn{background:repeating-linear-gradient(0deg,rgba(255,255,255,.22) 0 1px,rgba(0,0,0,.06) 1px 2px,transparent 2px 3px),linear-gradient(180deg,#e4e7ea,#bfc5cb 55%,#d9dde1)}
+.plaque-vue.nb{background:linear-gradient(180deg,#2a2f35,#111418);color:#f4f5f6;border-color:#000}
+.plaque-vue.vide{color:var(--rouge)}
+.texte-pub{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:13px;color:var(--doux);margin:-2px 0 10px}
+.texte-pub[hidden]{display:none}
+.coches{display:flex;gap:14px;margin-top:8px;font-size:14px}
+.coches label{display:flex;align-items:center;gap:6px;cursor:pointer}
+.coches input{width:20px;height:20px}
+.alerte-nom{background:#fbe4da;color:#8a3415;border-radius:10px;padding:9px 12px;font-size:14px;margin-bottom:12px}
+.boite-pl h4{margin:0 0 8px;font-size:15px}
+.boite-pl h4 small{font-weight:400;color:var(--doux)}
+@media print{
+  body{background:#fff;padding:0} .appli{border:none;box-shadow:none;max-width:none}
+  header,.bas,.proto,.pas-imprime{display:none !important} main{padding:0}
+}
+</style>
+</head>
+<body>
+<div class="appli">
+  <div class="proto">PROTOTYPE · données de test</div>
+  <header>
+    <h1 id="titre">Relevé de pose</h1>
+    <div class="ou" id="ou"></div>
+    <div class="etapes" id="etapes"></div>
+  </header>
+  <main id="ecran"></main>
+  <div class="bas" id="bas"></div>
+</div>
+<input type="file" id="fichier" accept="image/*" capture="environment">
+
+<script>
+const DONNEES = {"_lisez_moi": ["Base des batteries de boîtes aux lettres, transcrite à la main depuis les plans scannés de SARL Jeulin (2026-11-05).", "Chaque batterie est décrite comme sur le papier : une ligne par rangée (1 en haut), une case par colonne (A à gauche).", "Case ordinaire : \"lot/appartement/étage/interphone\". Étage : RC, 1, 2, 3. Une partie inconnue reste vide, ex. \"211/G05//\".", "Plusieurs lots dans une même boîte : \"153+154/C21+C22/2/\".", "Case spéciale : \"~état/interphone ! note\", états : non attribuée, libre, vide, conseil syndical.", "repartition_etages = le petit tableau étage par étage dessiné sous certains plans (sert au contrôle de cohérence)."], "residences": [{"id": "allees-fleuries", "nom": "Allées Fleuries", "adresse": "Bâtiments A à G", "ville": "Prévessin-Moëns", "syndic": "Orkan", "factures": ["OR26-114"], "plaques": {"boite_lettres": "NB 98x22 spéciale", "porte": "Abn 98x40", "pub": "NB 40x20 spéciale Noisetiers", "prix_net": {"boite_lettres": 27, "pub": 15}}, "batteries": [{"id": "af-bloc-1", "nom": "Bloc 1", "batiments": "A, B, C", "scan": "3 Allées Fleuries A-B-C-1.png", "colonnes": ["A", "B", "C", "D", "E", "F", "G", "H", "I"], "grille": [["128/A15/1/", "129/A21/2/", "130/A22/2/", "140/B15/1/", "141/B21/2/", "142/B22/2/", "152/C15/1/", "153+154/C21+C22/2/", "~conseil syndical/"], ["125/A12/1/", "126/A13/1/", "127/A14/1/", "137/B12/1/", "138/B13/1/", "139/B14/1/", "149/C12/1/", "150/C13/1/", "151/C14/1/"], ["122/A04/RC/", "123/A05/RC/", "124/A11/1/", "134/B04/RC/", "135/B05/RC/", "136/B11/1/", "146/C04/RC/", "147/C05/RC/", "148/C11/1/"], ["119/A01/RC/", "120/A02/RC/", "121/A03/RC/", "131/B01/RC/", "132/B02/RC/", "133/B03/RC/", "143/C01/RC/", "144/C02/RC/", "145/C03/RC/"]], "cases": [{"etat": "attribuée", "lots": ["128"], "appartements": ["A15"], "etage": "1", "interphone": "", "note": "", "case": "A1", "colonne": "A", "rangee": 1}, {"etat": "attribuée", "lots": ["129"], "appartements": ["A21"], "etage": "2", "interphone": "", "note": "", "case": "B1", "colonne": "B", "rangee": 1}, {"etat": "attribuée", "lots": ["130"], "appartements": ["A22"], "etage": "2", "interphone": "", "note": "", "case": "C1", "colonne": "C", "rangee": 1}, {"etat": "attribuée", "lots": ["140"], "appartements": ["B15"], "etage": "1", "interphone": "", "note": "", "case": "D1", "colonne": "D", "rangee": 1}, {"etat": "attribuée", "lots": ["141"], "appartements": ["B21"], "etage": "2", "interphone": "", "note": "", "case": "E1", "colonne": "E", "rangee": 1}, {"etat": "attribuée", "lots": ["142"], "appartements": ["B22"], "etage": "2", "interphone": "", "note": "", "case": "F1", "colonne": "F", "rangee": 1}, {"etat": "attribuée", "lots": ["152"], "appartements": ["C15"], "etage": "1", "interphone": "", "note": "", "case": "G1", "colonne": "G", "rangee": 1}, {"etat": "attribuée", "lots": ["153", "154"], "appartements": ["C21", "C22"], "etage": "2", "interphone": "", "note": "", "case": "H1", "colonne": "H", "rangee": 1}, {"etat": "conseil syndical", "lots": [], "appartements": [], "etage": "", "interphone": "", "note": "", "case": "I1", "colonne": "I", "rangee": 1}, {"etat": "attribuée", "lots": ["125"], "appartements": ["A12"], "etage": "1", "interphone": "", "note": "", "case": "A2", "colonne": "A", "rangee": 2}, {"etat": "attribuée", "lots": ["126"], "appartements": ["A13"], "etage": "1", "interphone": "", "note": "", "case": "B2", "colonne": "B", "rangee": 2}, {"etat": "attribuée", "lots": ["127"], "appartements": ["A14"], "etage": "1", "interphone": "", "note": "", "case": "C2", "colonne": "C", "rangee": 2}, {"etat": "attribuée", "lots": ["137"], "appartements": ["B12"], "etage": "1", "interphone": "", "note": "", "case": "D2", "colonne": "D", "rangee": 2}, {"etat": "attribuée", "lots": ["138"], "appartements": ["B13"], "etage": "1", "interphone": "", "note": "", "case": "E2", "colonne": "E", "rangee": 2}, {"etat": "attribuée", "lots": ["139"], "appartements": ["B14"], "etage": "1", "interphone": "", "note": "", "case": "F2", "colonne": "F", "rangee": 2}, {"etat": "attribuée", "lots": ["149"], "appartements": ["C12"], "etage": "1", "interphone": "", "note": "", "case": "G2", "colonne": "G", "rangee": 2}, {"etat": "attribuée", "lots": ["150"], "appartements": ["C13"], "etage": "1", "interphone": "", "note": "", "case": "H2", "colonne": "H", "rangee": 2}, {"etat": "attribuée", "lots": ["151"], "appartements": ["C14"], "etage": "1", "interphone": "", "note": "", "case": "I2", "colonne": "I", "rangee": 2}, {"etat": "attribuée", "lots": ["122"], "appartements": ["A04"], "etage": "RC", "interphone": "", "note": "", "case": "A3", "colonne": "A", "rangee": 3}, {"etat": "attribuée", "lots": ["123"], "appartements": ["A05"], "etage": "RC", "interphone": "", "note": "", "case": "B3", "colonne": "B", "rangee": 3}, {"etat": "attribuée", "lots": ["124"], "appartements": ["A11"], "etage": "1", "interphone": "", "note": "", "case": "C3", "colonne": "C", "rangee": 3}, {"etat": "attribuée", "lots": ["134"], "appartements": ["B04"], "etage": "RC", "interphone": "", "note": "", "case": "D3", "colonne": "D", "rangee": 3}, {"etat": "attribuée", "lots": ["135"], "appartements": ["B05"], "etage": "RC", "interphone": "", "note": "", "case": "E3", "colonne": "E", "rangee": 3}, {"etat": "attribuée", "lots": ["136"], "appartements": ["B11"], "etage": "1", "interphone": "", "note": "", "case": "F3", "colonne": "F", "rangee": 3}, {"etat": "attribuée", "lots": ["146"], "appartements": ["C04"], "etage": "RC", "interphone": "", "note": "", "case": "G3", "colonne": "G", "rangee": 3}, {"etat": "attribuée", "lots": ["147"], "appartements": ["C05"], "etage": "RC", "interphone": "", "note": "", "case": "H3", "colonne": "H", "rangee": 3}, {"etat": "attribuée", "lots": ["148"], "appartements": ["C11"], "etage": "1", "interphone": "", "note": "", "case": "I3", "colonne": "I", "rangee": 3}, {"etat": "attribuée", "lots": ["119"], "appartements": ["A01"], "etage": "RC", "interphone": "", "note": "", "case": "A4", "colonne": "A", "rangee": 4}, {"etat": "attribuée", "lots": ["120"], "appartements": ["A02"], "etage": "RC", "interphone": "", "note": "", "case": "B4", "colonne": "B", "rangee": 4}, {"etat": "attribuée", "lots": ["121"], "appartements": ["A03"], "etage": "RC", "interphone": "", "note": "", "case": "C4", "colonne": "C", "rangee": 4}, {"etat": "attribuée", "lots": ["131"], "appartements": ["B01"], "etage": "RC", "interphone": "", "note": "", "case": "D4", "colonne": "D", "rangee": 4}, {"etat": "attribuée", "lots": ["132"], "appartements": ["B02"], "etage": "RC", "interphone": "", "note": "", "case": "E4", "colonne": "E", "rangee": 4}, {"etat": "attribuée", "lots": ["133"], "appartements": ["B03"], "etage": "RC", "interphone": "", "note": "", "case": "F4", "colonne": "F", "rangee": 4}, {"etat": "attribuée", "lots": ["143"], "appartements": ["C01"], "etage": "RC", "interphone": "", "note": "", "case": "G4", "colonne": "G", "rangee": 4}, {"etat": "attribuée", "lots": ["144"], "appartements": ["C02"], "etage": "RC", "interphone": "", "note": "", "case": "H4", "colonne": "H", "rangee": 4}, {"etat": "attribuée", "lots": ["145"], "appartements": ["C03"], "etage": "RC", "interphone": "", "note": "", "case": "I4", "colonne": "I", "rangee": 4}], "nb_rangees": 4}, {"id": "af-bloc-2", "nom": "Bloc 2", "batiments": "D, E, F, G", "scan": "3 Allées Fleuries D-E-F-G-1.png", "colonnes": ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M"], "grille": [["164/D10/1/", "165/D11/2/", "166/D12/2/", "176/E22/2/", "177/E23/2/", "178/E24/2/", "179/E31/3/", "190/F23/2/", "191/F24/2/", "192/F31/3/", "218/G12/2/", "219/G13/3/", "220/G14/3/"], ["161/D07/1/", "162/D08/1/", "163/D09/1/", "173/E13/1/", "174/E14/1/", "175/E21/2/", "186/F13/2/", "187/F14/1/", "188/F21/2/", "189/F22/2/", "215/G09/2/", "216/G10/2/", "217/G11/2/"], ["158/D04/RC/", "159/D05/RC/", "160/D06/1/", "170/E04/RC/", "171/E11/1/", "172/E12/1/", "183/F04/RC/", "184/F11/1/", "185/F12/1/", "211/G05//", "212/G06//", "213/G07//", "214/G08//"], ["155/D01/RC/", "156/D02/RC/", "157/D03/RC/", "167/E01/RC/", "168/E02/RC/", "169/E03/RC/", "180/F01/RC/", "181/F02/RC/", "182/F03/RC/", "207/G01/RC/", "208/G02/RC/", "209/G03/RC/", "210/G04/RC/"]], "cases": [{"etat": "attribuée", "lots": ["164"], "appartements": ["D10"], "etage": "1", "interphone": "", "note": "", "case": "A1", "colonne": "A", "rangee": 1}, {"etat": "attribuée", "lots": ["165"], "appartements": ["D11"], "etage": "2", "interphone": "", "note": "", "case": "B1", "colonne": "B", "rangee": 1}, {"etat": "attribuée", "lots": ["166"], "appartements": ["D12"], "etage": "2", "interphone": "", "note": "", "case": "C1", "colonne": "C", "rangee": 1}, {"etat": "attribuée", "lots": ["176"], "appartements": ["E22"], "etage": "2", "interphone": "", "note": "", "case": "D1", "colonne": "D", "rangee": 1}, {"etat": "attribuée", "lots": ["177"], "appartements": ["E23"], "etage": "2", "interphone": "", "note": "", "case": "E1", "colonne": "E", "rangee": 1}, {"etat": "attribuée", "lots": ["178"], "appartements": ["E24"], "etage": "2", "interphone": "", "note": "", "case": "F1", "colonne": "F", "rangee": 1}, {"etat": "attribuée", "lots": ["179"], "appartements": ["E31"], "etage": "3", "interphone": "", "note": "", "case": "G1", "colonne": "G", "rangee": 1}, {"etat": "attribuée", "lots": ["190"], "appartements": ["F23"], "etage": "2", "interphone": "", "note": "", "case": "H1", "colonne": "H", "rangee": 1}, {"etat": "attribuée", "lots": ["191"], "appartements": ["F24"], "etage": "2", "interphone": "", "note": "", "case": "I1", "colonne": "I", "rangee": 1}, {"etat": "attribuée", "lots": ["192"], "appartements": ["F31"], "etage": "3", "interphone": "", "note": "", "case": "J1", "colonne": "J", "rangee": 1}, {"etat": "attribuée", "lots": ["218"], "appartements": ["G12"], "etage": "2", "interphone": "", "note": "", "case": "K1", "colonne": "K", "rangee": 1}, {"etat": "attribuée", "lots": ["219"], "appartements": ["G13"], "etage": "3", "interphone": "", "note": "", "case": "L1", "colonne": "L", "rangee": 1}, {"etat": "attribuée", "lots": ["220"], "appartements": ["G14"], "etage": "3", "interphone": "", "note": "", "case": "M1", "colonne": "M", "rangee": 1}, {"etat": "attribuée", "lots": ["161"], "appartements": ["D07"], "etage": "1", "interphone": "", "note": "", "case": "A2", "colonne": "A", "rangee": 2}, {"etat": "attribuée", "lots": ["162"], "appartements": ["D08"], "etage": "1", "interphone": "", "note": "", "case": "B2", "colonne": "B", "rangee": 2}, {"etat": "attribuée", "lots": ["163"], "appartements": ["D09"], "etage": "1", "interphone": "", "note": "", "case": "C2", "colonne": "C", "rangee": 2}, {"etat": "attribuée", "lots": ["173"], "appartements": ["E13"], "etage": "1", "interphone": "", "note": "", "case": "D2", "colonne": "D", "rangee": 2}, {"etat": "attribuée", "lots": ["174"], "appartements": ["E14"], "etage": "1", "interphone": "", "note": "", "case": "E2", "colonne": "E", "rangee": 2}, {"etat": "attribuée", "lots": ["175"], "appartements": ["E21"], "etage": "2", "interphone": "", "note": "", "case": "F2", "colonne": "F", "rangee": 2}, {"etat": "attribuée", "lots": ["186"], "appartements": ["F13"], "etage": "2", "interphone": "", "note": "", "case": "G2", "colonne": "G", "rangee": 2}, {"etat": "attribuée", "lots": ["187"], "appartements": ["F14"], "etage": "1", "interphone": "", "note": "", "case": "H2", "colonne": "H", "rangee": 2}, {"etat": "attribuée", "lots": ["188"], "appartements": ["F21"], "etage": "2", "interphone": "", "note": "", "case": "I2", "colonne": "I", "rangee": 2}, {"etat": "attribuée", "lots": ["189"], "appartements": ["F22"], "etage": "2", "interphone": "", "note": "", "case": "J2", "colonne": "J", "rangee": 2}, {"etat": "attribuée", "lots": ["215"], "appartements": ["G09"], "etage": "2", "interphone": "", "note": "", "case": "K2", "colonne": "K", "rangee": 2}, {"etat": "attribuée", "lots": ["216"], "appartements": ["G10"], "etage": "2", "interphone": "", "note": "", "case": "L2", "colonne": "L", "rangee": 2}, {"etat": "attribuée", "lots": ["217"], "appartements": ["G11"], "etage": "2", "interphone": "", "note": "", "case": "M2", "colonne": "M", "rangee": 2}, {"etat": "attribuée", "lots": ["158"], "appartements": ["D04"], "etage": "RC", "interphone": "", "note": "", "case": "A3", "colonne": "A", "rangee": 3}, {"etat": "attribuée", "lots": ["159"], "appartements": ["D05"], "etage": "RC", "interphone": "", "note": "", "case": "B3", "colonne": "B", "rangee": 3}, {"etat": "attribuée", "lots": ["160"], "appartements": ["D06"], "etage": "1", "interphone": "", "note": "", "case": "C3", "colonne": "C", "rangee": 3}, {"etat": "attribuée", "lots": ["170"], "appartements": ["E04"], "etage": "RC", "interphone": "", "note": "", "case": "D3", "colonne": "D", "rangee": 3}, {"etat": "attribuée", "lots": ["171"], "appartements": ["E11"], "etage": "1", "interphone": "", "note": "", "case": "E3", "colonne": "E", "rangee": 3}, {"etat": "attribuée", "lots": ["172"], "appartements": ["E12"], "etage": "1", "interphone": "", "note": "", "case": "F3", "colonne": "F", "rangee": 3}, {"etat": "attribuée", "lots": ["183"], "appartements": ["F04"], "etage": "RC", "interphone": "", "note": "", "case": "G3", "colonne": "G", "rangee": 3}, {"etat": "attribuée", "lots": ["184"], "appartements": ["F11"], "etage": "1", "interphone": "", "note": "", "case": "H3", "colonne": "H", "rangee": 3}, {"etat": "attribuée", "lots": ["185"], "appartements": ["F12"], "etage": "1", "interphone": "", "note": "", "case": "I3", "colonne": "I", "rangee": 3}, {"etat": "attribuée", "lots": ["211"], "appartements": ["G05"], "etage": "", "interphone": "", "note": "", "case": "J3", "colonne": "J", "rangee": 3}, {"etat": "attribuée", "lots": ["212"], "appartements": ["G06"], "etage": "", "interphone": "", "note": "", "case": "K3", "colonne": "K", "rangee": 3}, {"etat": "attribuée", "lots": ["213"], "appartements": ["G07"], "etage": "", "interphone": "", "note": "", "case": "L3", "colonne": "L", "rangee": 3}, {"etat": "attribuée", "lots": ["214"], "appartements": ["G08"], "etage": "", "interphone": "", "note": "", "case": "M3", "colonne": "M", "rangee": 3}, {"etat": "attribuée", "lots": ["155"], "appartements": ["D01"], "etage": "RC", "interphone": "", "note": "", "case": "A4", "colonne": "A", "rangee": 4}, {"etat": "attribuée", "lots": ["156"], "appartements": ["D02"], "etage": "RC", "interphone": "", "note": "", "case": "B4", "colonne": "B", "rangee": 4}, {"etat": "attribuée", "lots": ["157"], "appartements": ["D03"], "etage": "RC", "interphone": "", "note": "", "case": "C4", "colonne": "C", "rangee": 4}, {"etat": "attribuée", "lots": ["167"], "appartements": ["E01"], "etage": "RC", "interphone": "", "note": "", "case": "D4", "colonne": "D", "rangee": 4}, {"etat": "attribuée", "lots": ["168"], "appartements": ["E02"], "etage": "RC", "interphone": "", "note": "", "case": "E4", "colonne": "E", "rangee": 4}, {"etat": "attribuée", "lots": ["169"], "appartements": ["E03"], "etage": "RC", "interphone": "", "note": "", "case": "F4", "colonne": "F", "rangee": 4}, {"etat": "attribuée", "lots": ["180"], "appartements": ["F01"], "etage": "RC", "interphone": "", "note": "", "case": "G4", "colonne": "G", "rangee": 4}, {"etat": "attribuée", "lots": ["181"], "appartements": ["F02"], "etage": "RC", "interphone": "", "note": "", "case": "H4", "colonne": "H", "rangee": 4}, {"etat": "attribuée", "lots": ["182"], "appartements": ["F03"], "etage": "RC", "interphone": "", "note": "", "case": "I4", "colonne": "I", "rangee": 4}, {"etat": "attribuée", "lots": ["207"], "appartements": ["G01"], "etage": "RC", "interphone": "", "note": "", "case": "J4", "colonne": "J", "rangee": 4}, {"etat": "attribuée", "lots": ["208"], "appartements": ["G02"], "etage": "RC", "interphone": "", "note": "", "case": "K4", "colonne": "K", "rangee": 4}, {"etat": "attribuée", "lots": ["209"], "appartements": ["G03"], "etage": "RC", "interphone": "", "note": "", "case": "L4", "colonne": "L", "rangee": 4}, {"etat": "attribuée", "lots": ["210"], "appartements": ["G04"], "etage": "RC", "interphone": "", "note": "", "case": "M4", "colonne": "M", "rangee": 4}], "nb_rangees": 4}], "alertes": [{"batterie": "af-bloc-2", "case": "J3", "niveau": "manque", "texte": "Bloc 2, case J3 : étage non noté sur le plan (lot 211)."}, {"batterie": "af-bloc-2", "case": "K3", "niveau": "manque", "texte": "Bloc 2, case K3 : étage non noté sur le plan (lot 212)."}, {"batterie": "af-bloc-2", "case": "L3", "niveau": "manque", "texte": "Bloc 2, case L3 : étage non noté sur le plan (lot 213)."}, {"batterie": "af-bloc-2", "case": "M3", "niveau": "manque", "texte": "Bloc 2, case M3 : étage non noté sur le plan (lot 214)."}, {"batterie": "", "case": "", "niveau": "info", "texte": "Bâtiment D : les numéros d'appartement ne suivent pas l'étage (numérotation continue), aucun contrôle croisé possible."}, {"batterie": "af-bloc-2", "case": "G2", "niveau": "a-verifier", "texte": "Bloc 2, case G2 : appartement F13 laisse attendre le 1er, le plan dit 2e."}, {"batterie": "", "case": "", "niveau": "info", "texte": "Bâtiment G : les numéros d'appartement ne suivent pas l'étage (numérotation continue), aucun contrôle croisé possible."}]}, {"id": "ecrin-gare-72", "nom": "L'Écrin", "adresse": "72 avenue de la Gare", "ville": "Divonne-les-Bains", "syndic": "Orkan", "factures": ["OR26-90"], "plaques": {"boite_lettres": "AN 98x24", "porte": "NB 98x40", "interphone": "TAB AN 80x15 app + nom", "pub": "AN", "prix_net": {"boite_lettres": 29, "interphone": 17}}, "batteries": [{"id": "ecrin", "nom": "Batterie unique", "batiments": "B", "scan": "3 Gare 72 Ecrin-1.png", "colonnes": ["A", "B", "C", "D", "E", "F", "G"], "grille": [["21/B31/3/", "22/B32/3/", "23/B33/3/", "24/B34/3/", "25/B35/3/", "26/B36/3/", "~non attribuée/"], ["14/B21/2/", "15/B22/2/", "16/B23/2/", "17/B24/2/", "18/B25/2/", "19/B26/2/", "20/B27/2/"], ["7/B11/1/", "8/B12/1/", "9/B13/1/", "10/B14/1/", "11/B15/1/", "12/B16/1/", "13/B17/1/"], ["1/B01/RC/", "2/B02/RC/", "3/B03/RC/", "4/B04/RC/", "5/B05/RC/", "6/B06/RC/", "~non attribuée/"]], "repartition_etages": {"3": ["21", "22", "23", "24", "25", "26"], "2": ["14", "15", "16", "17", "18", "19", "20"], "1": ["7", "8", "9", "10", "11", "12", "13"], "RC": ["1", "2", "3", "4", "5", "6"]}, "cases": [{"etat": "attribuée", "lots": ["21"], "appartements": ["B31"], "etage": "3", "interphone": "", "note": "", "case": "A1", "colonne": "A", "rangee": 1}, {"etat": "attribuée", "lots": ["22"], "appartements": ["B32"], "etage": "3", "interphone": "", "note": "", "case": "B1", "colonne": "B", "rangee": 1}, {"etat": "attribuée", "lots": ["23"], "appartements": ["B33"], "etage": "3", "interphone": "", "note": "", "case": "C1", "colonne": "C", "rangee": 1}, {"etat": "attribuée", "lots": ["24"], "appartements": ["B34"], "etage": "3", "interphone": "", "note": "", "case": "D1", "colonne": "D", "rangee": 1}, {"etat": "attribuée", "lots": ["25"], "appartements": ["B35"], "etage": "3", "interphone": "", "note": "", "case": "E1", "colonne": "E", "rangee": 1}, {"etat": "attribuée", "lots": ["26"], "appartements": ["B36"], "etage": "3", "interphone": "", "note": "", "case": "F1", "colonne": "F", "rangee": 1}, {"etat": "non attribuée", "lots": [], "appartements": [], "etage": "", "interphone": "", "note": "", "case": "G1", "colonne": "G", "rangee": 1}, {"etat": "attribuée", "lots": ["14"], "appartements": ["B21"], "etage": "2", "interphone": "", "note": "", "case": "A2", "colonne": "A", "rangee": 2}, {"etat": "attribuée", "lots": ["15"], "appartements": ["B22"], "etage": "2", "interphone": "", "note": "", "case": "B2", "colonne": "B", "rangee": 2}, {"etat": "attribuée", "lots": ["16"], "appartements": ["B23"], "etage": "2", "interphone": "", "note": "", "case": "C2", "colonne": "C", "rangee": 2}, {"etat": "attribuée", "lots": ["17"], "appartements": ["B24"], "etage": "2", "interphone": "", "note": "", "case": "D2", "colonne": "D", "rangee": 2}, {"etat": "attribuée", "lots": ["18"], "appartements": ["B25"], "etage": "2", "interphone": "", "note": "", "case": "E2", "colonne": "E", "rangee": 2}, {"etat": "attribuée", "lots": ["19"], "appartements": ["B26"], "etage": "2", "interphone": "", "note": "", "case": "F2", "colonne": "F", "rangee": 2}, {"etat": "attribuée", "lots": ["20"], "appartements": ["B27"], "etage": "2", "interphone": "", "note": "", "case": "G2", "colonne": "G", "rangee": 2}, {"etat": "attribuée", "lots": ["7"], "appartements": ["B11"], "etage": "1", "interphone": "", "note": "", "case": "A3", "colonne": "A", "rangee": 3}, {"etat": "attribuée", "lots": ["8"], "appartements": ["B12"], "etage": "1", "interphone": "", "note": "", "case": "B3", "colonne": "B", "rangee": 3}, {"etat": "attribuée", "lots": ["9"], "appartements": ["B13"], "etage": "1", "interphone": "", "note": "", "case": "C3", "colonne": "C", "rangee": 3}, {"etat": "attribuée", "lots": ["10"], "appartements": ["B14"], "etage": "1", "interphone": "", "note": "", "case": "D3", "colonne": "D", "rangee": 3}, {"etat": "attribuée", "lots": ["11"], "appartements": ["B15"], "etage": "1", "interphone": "", "note": "", "case": "E3", "colonne": "E", "rangee": 3}, {"etat": "attribuée", "lots": ["12"], "appartements": ["B16"], "etage": "1", "interphone": "", "note": "", "case": "F3", "colonne": "F", "rangee": 3}, {"etat": "attribuée", "lots": ["13"], "appartements": ["B17"], "etage": "1", "interphone": "", "note": "", "case": "G3", "colonne": "G", "rangee": 3}, {"etat": "attribuée", "lots": ["1"], "appartements": ["B01"], "etage": "RC", "interphone": "", "note": "", "case": "A4", "colonne": "A", "rangee": 4}, {"etat": "attribuée", "lots": ["2"], "appartements": ["B02"], "etage": "RC", "interphone": "", "note": "", "case": "B4", "colonne": "B", "rangee": 4}, {"etat": "attribuée", "lots": ["3"], "appartements": ["B03"], "etage": "RC", "interphone": "", "note": "", "case": "C4", "colonne": "C", "rangee": 4}, {"etat": "attribuée", "lots": ["4"], "appartements": ["B04"], "etage": "RC", "interphone": "", "note": "", "case": "D4", "colonne": "D", "rangee": 4}, {"etat": "attribuée", "lots": ["5"], "appartements": ["B05"], "etage": "RC", "interphone": "", "note": "", "case": "E4", "colonne": "E", "rangee": 4}, {"etat": "attribuée", "lots": ["6"], "appartements": ["B06"], "etage": "RC", "interphone": "", "note": "", "case": "F4", "colonne": "F", "rangee": 4}, {"etat": "non attribuée", "lots": [], "appartements": [], "etage": "", "interphone": "", "note": "", "case": "G4", "colonne": "G", "rangee": 4}], "nb_rangees": 4}], "alertes": []}, {"id": "vesegnin-propriete-1", "nom": "Vésegnin, Propriété I", "adresse": "Route de Vésegnin, n° 277 à 357", "ville": "Prévessin-Moëns", "syndic": "Orkan", "factures": ["OR26-121"], "plaques": {"boite_lettres": "ABN 98x24 spéciale", "porte": "ABN 98x40 POE", "interphone": "AN 52x23 toilé", "pub": "ABN 70x20", "prix_net": {"boite_lettres": 27, "interphone": 15, "porte": 19}}, "batteries": [{"id": "ves-357", "nom": "N° 357, Bât 1", "batiments": "1", "scan": "3 Vesegnin 357 Bat 1 Propriété 1-1.png", "colonnes": ["A", "B", "C", "D"], "grille": [["3/103/RC/3", "4/111/1/4", "7/114/1/7", "10/123/2/10"], ["2/102/RC/2", "5/112/1/5", "8/121/2/8", "11/124/2/11"], ["1/101/RC/1", "6/113/1/6", "9/122/2/9", "12/131/3/12"]], "repartition_etages": {"3": ["12"], "2": ["8", "9", "10", "11"], "1": ["4", "5", "6", "7"], "RC": ["1", "2", "3"]}, "cases": [{"etat": "attribuée", "lots": ["3"], "appartements": ["103"], "etage": "RC", "interphone": "3", "note": "", "case": "A1", "colonne": "A", "rangee": 1}, {"etat": "attribuée", "lots": ["4"], "appartements": ["111"], "etage": "1", "interphone": "4", "note": "", "case": "B1", "colonne": "B", "rangee": 1}, {"etat": "attribuée", "lots": ["7"], "appartements": ["114"], "etage": "1", "interphone": "7", "note": "", "case": "C1", "colonne": "C", "rangee": 1}, {"etat": "attribuée", "lots": ["10"], "appartements": ["123"], "etage": "2", "interphone": "10", "note": "", "case": "D1", "colonne": "D", "rangee": 1}, {"etat": "attribuée", "lots": ["2"], "appartements": ["102"], "etage": "RC", "interphone": "2", "note": "", "case": "A2", "colonne": "A", "rangee": 2}, {"etat": "attribuée", "lots": ["5"], "appartements": ["112"], "etage": "1", "interphone": "5", "note": "", "case": "B2", "colonne": "B", "rangee": 2}, {"etat": "attribuée", "lots": ["8"], "appartements": ["121"], "etage": "2", "interphone": "8", "note": "", "case": "C2", "colonne": "C", "rangee": 2}, {"etat": "attribuée", "lots": ["11"], "appartements": ["124"], "etage": "2", "interphone": "11", "note": "", "case": "D2", "colonne": "D", "rangee": 2}, {"etat": "attribuée", "lots": ["1"], "appartements": ["101"], "etage": "RC", "interphone": "1", "note": "", "case": "A3", "colonne": "A", "rangee": 3}, {"etat": "attribuée", "lots": ["6"], "appartements": ["113"], "etage": "1", "interphone": "6", "note": "", "case": "B3", "colonne": "B", "rangee": 3}, {"etat": "attribuée", "lots": ["9"], "appartements": ["122"], "etage": "2", "interphone": "9", "note": "", "case": "C3", "colonne": "C", "rangee": 3}, {"etat": "attribuée", "lots": ["12"], "appartements": ["131"], "etage": "3", "interphone": "12", "note": "", "case": "D3", "colonne": "D", "rangee": 3}], "nb_rangees": 3}, {"id": "ves-337", "nom": "N° 337, Bât 2", "batiments": "2", "scan": "3 Vesegnin 277 - 297 - 317 - 337 Propriété 1-1.png", "colonnes": ["A", "B", "C", "D"], "grille": [["15/203/RC/3", "16/211/1/4", "19/221/2/7", "22/231/3/10"], ["14/202/RC/2", "17/212/1/5", "20/222/2/8", "23/232/3/11"], ["13/201/RC/1", "18/213/1/6", "21/223/2/9", "~vide/12"]], "repartition_etages": {"3": ["22", "23"], "2": ["19", "20", "21"], "1": ["16", "17", "18"], "RC": ["13", "14", "15"]}, "cases": [{"etat": "attribuée", "lots": ["15"], "appartements": ["203"], "etage": "RC", "interphone": "3", "note": "", "case": "A1", "colonne": "A", "rangee": 1}, {"etat": "attribuée", "lots": ["16"], "appartements": ["211"], "etage": "1", "interphone": "4", "note": "", "case": "B1", "colonne": "B", "rangee": 1}, {"etat": "attribuée", "lots": ["19"], "appartements": ["221"], "etage": "2", "interphone": "7", "note": "", "case": "C1", "colonne": "C", "rangee": 1}, {"etat": "attribuée", "lots": ["22"], "appartements": ["231"], "etage": "3", "interphone": "10", "note": "", "case": "D1", "colonne": "D", "rangee": 1}, {"etat": "attribuée", "lots": ["14"], "appartements": ["202"], "etage": "RC", "interphone": "2", "note": "", "case": "A2", "colonne": "A", "rangee": 2}, {"etat": "attribuée", "lots": ["17"], "appartements": ["212"], "etage": "1", "interphone": "5", "note": "", "case": "B2", "colonne": "B", "rangee": 2}, {"etat": "attribuée", "lots": ["20"], "appartements": ["222"], "etage": "2", "interphone": "8", "note": "", "case": "C2", "colonne": "C", "rangee": 2}, {"etat": "attribuée", "lots": ["23"], "appartements": ["232"], "etage": "3", "interphone": "11", "note": "", "case": "D2", "colonne": "D", "rangee": 2}, {"etat": "attribuée", "lots": ["13"], "appartements": ["201"], "etage": "RC", "interphone": "1", "note": "", "case": "A3", "colonne": "A", "rangee": 3}, {"etat": "attribuée", "lots": ["18"], "appartements": ["213"], "etage": "1", "interphone": "6", "note": "", "case": "B3", "colonne": "B", "rangee": 3}, {"etat": "attribuée", "lots": ["21"], "appartements": ["223"], "etage": "2", "interphone": "9", "note": "", "case": "C3", "colonne": "C", "rangee": 3}, {"etat": "vide", "lots": [], "appartements": [], "etage": "", "interphone": "12", "note": "", "case": "D3", "colonne": "D", "rangee": 3}], "nb_rangees": 3}, {"id": "ves-317", "nom": "N° 317, Bât 3", "batiments": "3", "scan": "3 Vesegnin 277 - 297 - 317 - 337 Propriété 1-1.png", "colonnes": ["A", "B", "C", "D"], "grille": [["53/303/RC/3", "54/311/1/4", "57/314/1/7", "60/323/2/10"], ["52/302/RC/2", "55/312/1/5", "58/321/2/8", "61/324/2/11"], ["51/301/RC/1", "56/313/1/6", "59/322/2/9", "62/331/3/12"]], "repartition_etages": {"3": ["62"], "2": ["58", "59", "60", "61"], "1": ["54", "55", "56", "57"], "RC": ["51", "52", "53"]}, "cases": [{"etat": "attribuée", "lots": ["53"], "appartements": ["303"], "etage": "RC", "interphone": "3", "note": "", "case": "A1", "colonne": "A", "rangee": 1}, {"etat": "attribuée", "lots": ["54"], "appartements": ["311"], "etage": "1", "interphone": "4", "note": "", "case": "B1", "colonne": "B", "rangee": 1}, {"etat": "attribuée", "lots": ["57"], "appartements": ["314"], "etage": "1", "interphone": "7", "note": "", "case": "C1", "colonne": "C", "rangee": 1}, {"etat": "attribuée", "lots": ["60"], "appartements": ["323"], "etage": "2", "interphone": "10", "note": "", "case": "D1", "colonne": "D", "rangee": 1}, {"etat": "attribuée", "lots": ["52"], "appartements": ["302"], "etage": "RC", "interphone": "2", "note": "", "case": "A2", "colonne": "A", "rangee": 2}, {"etat": "attribuée", "lots": ["55"], "appartements": ["312"], "etage": "1", "interphone": "5", "note": "", "case": "B2", "colonne": "B", "rangee": 2}, {"etat": "attribuée", "lots": ["58"], "appartements": ["321"], "etage": "2", "interphone": "8", "note": "", "case": "C2", "colonne": "C", "rangee": 2}, {"etat": "attribuée", "lots": ["61"], "appartements": ["324"], "etage": "2", "interphone": "11", "note": "", "case": "D2", "colonne": "D", "rangee": 2}, {"etat": "attribuée", "lots": ["51"], "appartements": ["301"], "etage": "RC", "interphone": "1", "note": "", "case": "A3", "colonne": "A", "rangee": 3}, {"etat": "attribuée", "lots": ["56"], "appartements": ["313"], "etage": "1", "interphone": "6", "note": "", "case": "B3", "colonne": "B", "rangee": 3}, {"etat": "attribuée", "lots": ["59"], "appartements": ["322"], "etage": "2", "interphone": "9", "note": "", "case": "C3", "colonne": "C", "rangee": 3}, {"etat": "attribuée", "lots": ["62"], "appartements": ["331"], "etage": "3", "interphone": "12", "note": "", "case": "D3", "colonne": "D", "rangee": 3}], "nb_rangees": 3}, {"id": "ves-297", "nom": "N° 297, Bât 4", "batiments": "4", "scan": "3 Vesegnin 277 - 297 - 317 - 337 Propriété 1-1.png", "colonnes": ["A", "B", "C", "D"], "grille": [["86/403/RC/3", "87/411/1/4", "92/423/2/7", "93/431/3/10"], ["85/402/RC/2", "88/412/1/5", "91/422/2/8", "~libre/11"], ["84/401/RC/1", "89/413/1/6", "90/421/2/9", "~libre/12"]], "repartition_etages": {"3": ["93"], "2": ["90", "91", "92"], "1": ["87", "88", "85"], "RC": ["84", "85", "86"]}, "cases": [{"etat": "attribuée", "lots": ["86"], "appartements": ["403"], "etage": "RC", "interphone": "3", "note": "", "case": "A1", "colonne": "A", "rangee": 1}, {"etat": "attribuée", "lots": ["87"], "appartements": ["411"], "etage": "1", "interphone": "4", "note": "", "case": "B1", "colonne": "B", "rangee": 1}, {"etat": "attribuée", "lots": ["92"], "appartements": ["423"], "etage": "2", "interphone": "7", "note": "", "case": "C1", "colonne": "C", "rangee": 1}, {"etat": "attribuée", "lots": ["93"], "appartements": ["431"], "etage": "3", "interphone": "10", "note": "", "case": "D1", "colonne": "D", "rangee": 1}, {"etat": "attribuée", "lots": ["85"], "appartements": ["402"], "etage": "RC", "interphone": "2", "note": "", "case": "A2", "colonne": "A", "rangee": 2}, {"etat": "attribuée", "lots": ["88"], "appartements": ["412"], "etage": "1", "interphone": "5", "note": "", "case": "B2", "colonne": "B", "rangee": 2}, {"etat": "attribuée", "lots": ["91"], "appartements": ["422"], "etage": "2", "interphone": "8", "note": "", "case": "C2", "colonne": "C", "rangee": 2}, {"etat": "libre", "lots": [], "appartements": [], "etage": "", "interphone": "11", "note": "", "case": "D2", "colonne": "D", "rangee": 2}, {"etat": "attribuée", "lots": ["84"], "appartements": ["401"], "etage": "RC", "interphone": "1", "note": "", "case": "A3", "colonne": "A", "rangee": 3}, {"etat": "attribuée", "lots": ["89"], "appartements": ["413"], "etage": "1", "interphone": "6", "note": "", "case": "B3", "colonne": "B", "rangee": 3}, {"etat": "attribuée", "lots": ["90"], "appartements": ["421"], "etage": "2", "interphone": "9", "note": "", "case": "C3", "colonne": "C", "rangee": 3}, {"etat": "libre", "lots": [], "appartements": [], "etage": "", "interphone": "12", "note": "", "case": "D3", "colonne": "D", "rangee": 3}], "nb_rangees": 3}, {"id": "ves-277", "nom": "N° 277, Bât 5", "batiments": "5", "scan": "3 Vesegnin 277 - 297 - 317 - 337 Propriété 1-1.png", "colonnes": ["A", "B", "C", "D"], "grille": [["116/503/RC/3", "117/511/1/4", "122/523/2/7", "123/531/3/10"], ["115/502/RC/2", "118/512/1/5", "121/522/2/8", "~libre/11 ! 01/26 occupée par Victor"], ["114/501/RC/1", "119/513/1/6", "120/521/2/9", "~libre/12"]], "repartition_etages": {"3": ["123"], "2": ["120", "121", "122"], "1": ["117", "118", "119"], "RC": ["114", "115", "116"]}, "cases": [{"etat": "attribuée", "lots": ["116"], "appartements": ["503"], "etage": "RC", "interphone": "3", "note": "", "case": "A1", "colonne": "A", "rangee": 1}, {"etat": "attribuée", "lots": ["117"], "appartements": ["511"], "etage": "1", "interphone": "4", "note": "", "case": "B1", "colonne": "B", "rangee": 1}, {"etat": "attribuée", "lots": ["122"], "appartements": ["523"], "etage": "2", "interphone": "7", "note": "", "case": "C1", "colonne": "C", "rangee": 1}, {"etat": "attribuée", "lots": ["123"], "appartements": ["531"], "etage": "3", "interphone": "10", "note": "", "case": "D1", "colonne": "D", "rangee": 1}, {"etat": "attribuée", "lots": ["115"], "appartements": ["502"], "etage": "RC", "interphone": "2", "note": "", "case": "A2", "colonne": "A", "rangee": 2}, {"etat": "attribuée", "lots": ["118"], "appartements": ["512"], "etage": "1", "interphone": "5", "note": "", "case": "B2", "colonne": "B", "rangee": 2}, {"etat": "attribuée", "lots": ["121"], "appartements": ["522"], "etage": "2", "interphone": "8", "note": "", "case": "C2", "colonne": "C", "rangee": 2}, {"etat": "libre", "lots": [], "appartements": [], "etage": "", "interphone": "11", "note": "01/26 occupée par Victor", "case": "D2", "colonne": "D", "rangee": 2}, {"etat": "attribuée", "lots": ["114"], "appartements": ["501"], "etage": "RC", "interphone": "1", "note": "", "case": "A3", "colonne": "A", "rangee": 3}, {"etat": "attribuée", "lots": ["119"], "appartements": ["513"], "etage": "1", "interphone": "6", "note": "", "case": "B3", "colonne": "B", "rangee": 3}, {"etat": "attribuée", "lots": ["120"], "appartements": ["521"], "etage": "2", "interphone": "9", "note": "", "case": "C3", "colonne": "C", "rangee": 3}, {"etat": "libre", "lots": [], "appartements": [], "etage": "", "interphone": "12", "note": "", "case": "D3", "colonne": "D", "rangee": 3}], "nb_rangees": 3}], "alertes": [{"batterie": "ves-297", "case": "B3", "niveau": "contradiction", "texte": "N° 297, Bât 4, case B3 : lot 89 noté au 1er dans la grille, mais absent dans le tableau des étages."}, {"batterie": "ves-297", "case": "", "niveau": "contradiction", "texte": "N° 297, Bât 4 : le lot 85 apparaît 2 fois dans le tableau des étages."}]}]};
+const PRESTATIONS = [
+  {cle:"boite_lettres", code:"BL", nom:"Plaque boîte aux lettres"},
+  {cle:"interphone", code:"INTER", nom:"Étiquette interphone"},
+  {cle:"porte", code:"PORTE", nom:"Plaque de porte"},
+  {cle:"pub", code:"PUB", nom:"Plaque stop pub"},
+];
+const TITRES = ["Où es-tu ?", "La photo", "Les boîtes", "La pose", "Les plaques", "La facture"];
+const TEINTES = {RC:"var(--rc)","1":"var(--e1)","2":"var(--e2)","3":"var(--e3)"};
+const ETAGE = e => ({RC:"RC","1":"1er"}[e] || (e ? e + "e" : "?"));
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const euros = n => n.toLocaleString("fr-FR", {style:"currency", currency:"EUR"});
+
+const ETAGE_LONG = e => ({RC:"rez-de-chaussée","1":"1er étage"}[e] || (e ? e + "e étage" : "étage ?"));
+const etat = {vuePl:"boite", suivi:new Map(), etape:0, res:null, bat:null, photo:null, cadre:{x:10,y:15,w:80,h:60}, choix:new Map(), ouverte:null};
+
+const ecran = document.getElementById("ecran"), bas = document.getElementById("bas");
+
+function prix(res){ return (res.plaques && res.plaques.prix_net) || {}; }
+function prestationsDispo(res){ return PRESTATIONS.filter(p => prix(res)[p.cle] != null); }
+function caseDe(id){ return etat.bat.cases.find(c => c.case === id); }
+
+function entete(){
+  document.getElementById("titre").textContent = TITRES[etat.etape];
+  document.getElementById("ou").textContent = etat.bat ? `${etat.res.nom} · ${etat.bat.nom}` : "Choisis la résidence et la batterie";
+  document.getElementById("etapes").innerHTML = TITRES.map((_, i) => `<span class="${i <= etat.etape ? "faite" : ""}"></span>`).join("");
+}
+
+function aller(n){ etat.etape = n; rendre(); ecran.scrollTop = 0; window.scrollTo(0,0); }
+
+function rendre(){
+  ecran.onclick = null; ecran.oninput = null; ecran.onchange = null;
+  entete();
+  [lieu, photo, boites, pose, plaques, facture][etat.etape]();
+}
+
+/* 1. Le lieu */
+function lieu(){
+  ecran.innerHTML = `<h2>Où es-tu ?</h2><p class="aide">Choisis la résidence, puis la batterie devant toi.</p>
+    <div class="liste">
+      <button class="choix qr" disabled><b>Scanner le QR code du meuble</b><small>Prévu : une étiquette dans chaque batterie, pour l'ouvrir directement.</small></button>
+      ${DONNEES.residences.map(r => `
+        <div><button class="choix" data-res="${r.id}"><b>${esc(r.nom)}</b><small>${esc(r.adresse)}, ${esc(r.ville)} · ${r.batteries.length} batterie${r.batteries.length > 1 ? "s" : ""}</small></button>
+        ${etat.ouverte === r.id ? `<div class="sous">${r.batteries.map(b => `
+          <button class="choix" data-bat="${b.id}"><b>${esc(b.nom)}</b><small>Bâtiment${/,/.test(b.batiments) ? "s" : ""} ${esc(b.batiments)} · ${b.colonnes.length} × ${b.nb_rangees} boîtes</small></button>`).join("")}</div>` : ""}</div>`).join("")}
+    </div>`;
+  bas.innerHTML = "";
+  ecran.onclick = e => {
+    const r = e.target.closest("[data-res]"), b = e.target.closest("[data-bat]");
+    if (r){ etat.ouverte = etat.ouverte === r.dataset.res ? null : r.dataset.res; rendre(); }
+    if (b){
+      const res = DONNEES.residences.find(x => x.id === etat.ouverte);
+      const bat = res.batteries.find(x => x.id === b.dataset.bat);
+      if (bat !== etat.bat){ etat.choix.clear(); }
+      etat.res = res; etat.bat = bat; aller(1);
+    }
+  };
+}
+
+/* 2. La photo et le calage de la grille */
+function scene(verrou){
+  const b = etat.bat, k = etat.cadre;
+  const cellules = b.cases.map(c => {
+    const vide = c.etat !== "attribuée";
+    return `<div class="c ${vide ? "vide" : ""} ${etat.choix.has(c.case) ? "choisie" : ""}" data-case="${c.case}">${vide ? "" : esc(c.lots.join("+"))}</div>`;
+  });
+  // b.cases est rangé rangée par rangée : on remplit la grille dans le même ordre.
+  return `<div class="scene ${etat.photo ? "" : "sans-photo"} ${verrou ? "verrou" : ""}" id="scene">
+    ${etat.photo ? `<img src="${etat.photo}" alt="Photo de la batterie">` : ""}
+    <div class="cadre" id="cadre" style="left:${k.x}%;top:${k.y}%;width:${k.w}%;height:${k.h}%;grid-template-columns:repeat(${b.colonnes.length},1fr);grid-template-rows:repeat(${b.nb_rangees},1fr)">${cellules.join("")}</div>
+    <div class="poignee" data-p="hg" style="left:${k.x}%;top:${k.y}%"></div>
+    <div class="poignee" data-p="bd" style="left:${k.x + k.w}%;top:${k.y + k.h}%"></div>
+  </div>`;
+}
+
+function brancherPoignees(){
+  const sc = document.getElementById("scene");
+  sc.querySelectorAll(".poignee").forEach(p => {
+    p.onpointerdown = e => {
+      e.preventDefault(); p.setPointerCapture(e.pointerId);
+      p.onpointermove = ev => {
+        const r = sc.getBoundingClientRect();
+        const x = Math.max(0, Math.min(100, (ev.clientX - r.left) / r.width * 100));
+        const y = Math.max(0, Math.min(100, (ev.clientY - r.top) / r.height * 100));
+        const k = etat.cadre;
+        if (p.dataset.p === "hg"){ const x2 = k.x + k.w, y2 = k.y + k.h; k.x = Math.min(x, x2 - 8); k.y = Math.min(y, y2 - 8); k.w = x2 - k.x; k.h = y2 - k.y; }
+        else { k.w = Math.max(8, x - k.x); k.h = Math.max(8, y - k.y); }
+        const c = document.getElementById("cadre");
+        c.style.left = k.x + "%"; c.style.top = k.y + "%"; c.style.width = k.w + "%"; c.style.height = k.h + "%";
+        sc.querySelector('[data-p="hg"]').style.cssText = `left:${k.x}%;top:${k.y}%`;
+        sc.querySelector('[data-p="bd"]').style.cssText = `left:${k.x + k.w}%;top:${k.y + k.h}%`;
+      };
+      p.onpointerup = () => { p.onpointermove = null; };
+    };
+  });
+}
+
+function photo(){
+  if (!etat.photo && !etat.sansPhoto){
+    ecran.innerHTML = `<h2>Prends la batterie en photo</h2>
+      <p class="aide">Bien de face, tout le meuble dans l'image. La photo reste sur le téléphone et sera jointe à la facture.</p>
+      <label class="gros-photo" for="fichier">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="4"/></svg>
+        Prendre la photo</label>
+      <button class="lien" id="sans">Continuer sans photo</button>`;
+    document.getElementById("sans").onclick = () => { etat.sansPhoto = true; rendre(); };
+    bas.innerHTML = `<button class="btn second" id="retour">Retour</button>`;
+    document.getElementById("retour").onclick = () => aller(0);
+    return;
+  }
+  ecran.innerHTML = `<h2>Pose la grille sur la photo</h2>
+    <p class="aide">Glisse les deux ronds jaunes sur les coins de la batterie (haut gauche, bas droite). Chaque case de la grille correspond alors à une boîte de la base.</p>
+    ${scene(false)}
+    <button class="lien" id="refaire">${etat.photo ? "Reprendre la photo" : "Prendre une photo finalement"}</button>`;
+  brancherPoignees();
+  document.getElementById("refaire").onclick = () => document.getElementById("fichier").click();
+  bas.innerHTML = `<button class="btn second" id="retour">Retour</button><button class="btn" id="suite">C'est calé</button>`;
+  document.getElementById("retour").onclick = () => aller(0);
+  document.getElementById("suite").onclick = () => aller(2);
+}
+
+document.getElementById("fichier").onchange = e => {
+  const f = e.target.files[0]; if (!f) return;
+  if (etat.photo) URL.revokeObjectURL(etat.photo);
+  etat.photo = URL.createObjectURL(f); etat.sansPhoto = false; aller(1);
+};
+
+/* 3. Choisir les boîtes */
+function boites(){
+  const b = etat.bat;
+  ecran.innerHTML = `<h2>Quelles boîtes ?</h2>
+    <p class="aide">Touche les boîtes où tu poses quelque chose, sur la photo ou sur le plan.</p>
+    ${scene(true)}
+    <div class="grille" style="grid-template-columns:repeat(${b.colonnes.length},1fr)">
+      ${b.cases.map(c => c.etat !== "attribuée"
+        ? `<button disabled><small>${c.case}</small><small>${esc(c.etat)}</small></button>`
+        : `<button data-case="${c.case}" class="${etat.choix.has(c.case) ? "choisie" : ""}" style="${etat.choix.has(c.case) ? "" : `background:${TEINTES[c.etage] || ""}`}">
+            <small>${c.case} · lot ${esc(c.lots.join("+"))}</small><b>${esc(c.appartements.join("+"))}</b><small>${ETAGE(c.etage)}${c.interphone ? " · ☎" + esc(c.interphone) : ""}</small></button>`).join("")}
+    </div>
+    <div class="compte">${etat.choix.size ? `${etat.choix.size} boîte${etat.choix.size > 1 ? "s" : ""} choisie${etat.choix.size > 1 ? "s" : ""}` : ""}</div>`;
+  ecran.onclick = e => {
+    const el = e.target.closest("[data-case]"); if (!el) return;
+    const c = caseDe(el.dataset.case); if (!c || c.etat !== "attribuée") return;
+    if (etat.choix.has(c.case)) etat.choix.delete(c.case);
+    else etat.choix.set(c.case, {prest:new Set(["BL"]), nom:""});
+    boites();
+  };
+  bas.innerHTML = `<button class="btn second" id="retour">Retour</button><button class="btn" id="suite" ${etat.choix.size ? "" : "disabled"}>Suivant</button>`;
+  document.getElementById("retour").onclick = () => aller(1);
+  document.getElementById("suite").onclick = () => aller(3);
+}
+
+/* 4. Ce qu'on pose dans chaque boîte */
+function pose(){
+  const dispo = prestationsDispo(etat.res), p = prix(etat.res);
+  const ids = [...etat.choix.keys()];
+  ecran.innerHTML = `<h2>Qu'est-ce qu'on pose ?</h2>
+    <p class="aide">Pour chaque boîte : les plaques et le nom à graver. Le lot, l'appartement et l'étage viennent de la base.</p>
+    ${ids.map(id => { const c = caseDe(id), s = etat.choix.get(id); return `
+      <div class="fiche" data-fiche="${id}">
+        <div class="tete"><b>${id} · App. ${esc(c.appartements.join("+"))}</b><span>lot ${esc(c.lots.join("+"))} · ${ETAGE(c.etage)}${c.interphone ? " · interphone " + esc(c.interphone) : ""}</span></div>
+        <div class="puces">${dispo.map(x => `<button class="puce" data-prest="${x.code}" aria-pressed="${s.prest.has(x.code)}">${x.nom.replace("Plaque ","").replace("Étiquette ","")} · ${euros(p[x.cle])}</button>`).join("")}</div>
+        ${dispo.some(x => x.code === "PUB") ? `<div class="texte-pub" ${s.prest.has("PUB") ? "" : "hidden"}>Texte pub :
+          ${["STOP PUB", "PAS DE PUB SVP"].map(t => `<button class="puce" data-pubtxt="${t}" aria-pressed="${(s.pub || "STOP PUB") === t}">${t}</button>`).join("")}</div>` : ""}
+        <label>Nom à graver<input type="text" value="${esc(s.nom)}" placeholder="ex. DUPONT Marie" autocomplete="off"></label>
+      </div>`; }).join("")}`;
+  ecran.onclick = e => {
+    const fiche = e.target.closest("[data-fiche]"); if (!fiche) return;
+    const s = etat.choix.get(fiche.dataset.fiche);
+    const tx = e.target.closest("[data-pubtxt]");
+    if (tx){ s.pub = tx.dataset.pubtxt; fiche.querySelectorAll("[data-pubtxt]").forEach(b => b.setAttribute("aria-pressed", b === tx)); return; }
+    const pu = e.target.closest("[data-prest]"); if (!pu) return;
+    s.prest.has(pu.dataset.prest) ? s.prest.delete(pu.dataset.prest) : s.prest.add(pu.dataset.prest);
+    pu.setAttribute("aria-pressed", s.prest.has(pu.dataset.prest));
+    const zone = fiche.querySelector(".texte-pub"); if (zone) zone.hidden = !s.prest.has("PUB");
+  };
+  ecran.oninput = e => { const f = e.target.closest("[data-fiche]"); if (f && e.target.matches("input[type=text]")) etat.choix.get(f.dataset.fiche).nom = e.target.value.toUpperCase(); };
+  bas.innerHTML = `<button class="btn second" id="retour">Retour</button><button class="btn" id="suite">Plaques à graver</button>`;
+  document.getElementById("retour").onclick = () => aller(2);
+  document.getElementById("suite").onclick = () => aller(4);
+}
+
+/* 5. État récapitulatif des plaques à graver (bon d'atelier) */
+const ORDRE_PL = ["BL", "PORTE", "INTER", "PUB"];
+const NOM_PL = {BL:"Boîte aux lettres", PORTE:"Porte", INTER:"Interphone", PUB:"Stop pub"};
+const CLE_PL = {BL:"boite_lettres", PORTE:"porte", INTER:"interphone", PUB:"pub"};
+function specPl(code){ return ((etat.res.plaques || {})[CLE_PL[code]]) || ""; }
+// Codes Jeulin : AN = argent, écriture noire ; ABN = argent brossé, écriture noire ; NB = noire, écriture blanche.
+function matiere(sp){
+  const t = String(sp).toUpperCase().split(/[^A-Z]+/);
+  if (t.includes("ABN")) return {cls:"abn", lib:"argent brossé, écriture noire"};
+  if (t.includes("NB")) return {cls:"nb", lib:"noire, écriture blanche"};
+  if (t.includes("AN")) return {cls:"an", lib:"argent, écriture noire"};
+  return {cls:"", lib:""};
+}
+function dimsPl(sp){ const m = sp.match(/(\d+)\s*[xX×]\s*(\d+)/); return m ? [+m[1], +m[2]] : [90, 25]; }
+function listePlaques(){
+  const out = [];
+  for (const [id, s] of etat.choix){
+    const c = caseDe(id), apps = c.appartements.join("+");
+    for (const code of ORDRE_PL){
+      if (!s.prest.has(code)) continue;
+      const sp = specPl(code), [w, h] = dimsPl(sp), nom = s.nom.trim();
+      let texte = nom;
+      if (code === "INTER" && /app/i.test(sp) && nom) texte = `${apps}  ${nom}`;
+      if (code === "PUB") texte = s.pub || "STOP PUB";
+      const ou = {BL:`Boîte ${id}`, PORTE:`Porte de l'app. ${apps}, ${ETAGE_LONG(c.etage)}`,
+        INTER:`Interphone${c.interphone ? " n° " + c.interphone : ""}`, PUB:`Boîte ${id}`}[code];
+      out.push({id:`${id}-${code}`, box:id, c, code, sp, w, h, texte, ou, mat:matiere(sp)});
+    }
+  }
+  return out;
+}
+function rendrePlaque(pl){
+  const k = 2.3, W = pl.w * k, H = pl.h * k, t = pl.texte || "NOM MANQUANT";
+  const fs = Math.max(9, Math.min(H * 0.5, (W * 0.9) / (t.length * 0.66)));
+  return `<div class="plaque-vue ${pl.mat.cls} ${pl.texte ? "" : "vide"}" style="width:${W}px;height:${H}px;font-size:${fs}px" title="${esc(pl.sp)}">${esc(t)}</div>`;
+}
+function coches(pl){
+  const f = etat.suivi.get(pl.id) || {};
+  return `<div class="coches"><label><input type="checkbox" data-suivi="${pl.id}" data-q="g" ${f.g ? "checked" : ""}> Gravée</label>
+    <label><input type="checkbox" data-suivi="${pl.id}" data-q="p" ${f.p ? "checked" : ""}> Posée</label></div>`;
+}
+function plaques(){
+  const pls = listePlaques();
+  const parType = ORDRE_PL.map(code => ({code, items: pls.filter(p => p.code === code)})).filter(g => g.items.length);
+  const sansNom = pls.filter(p => !p.texte).length;
+  let h = `<h2>Plaques à graver</h2>
+    <p class="aide">Le bon d'atelier : chaque plaque à la bonne taille, avec son texte et l'endroit où la poser. Vue « Atelier » pour couper et graver par série, vue « Pose » pour la mise en place.</p>
+    <div class="resume-pl">${parType.map(g => `<span><b>${g.items.length}</b>${NOM_PL[g.code]}${specPl(g.code) ? " · " + esc(specPl(g.code)) : ""}</span>`).join("")}</div>
+    ${sansNom ? `<div class="alerte-nom">${sansNom} plaque${sansNom > 1 ? "s" : ""} sans nom : retourne à l'étape précédente pour le saisir.</div>` : ""}
+    <div class="bascule-vue pas-imprime"><button data-vue="type" aria-pressed="${etat.vuePl === "type"}">Atelier (par type)</button><button data-vue="boite" aria-pressed="${etat.vuePl === "boite"}">Pose (par boîte)</button></div>`;
+  if (etat.vuePl === "type"){
+    for (const g of parType){
+      h += `<div class="groupe"><h3>${NOM_PL[g.code]} · ${g.items.length} plaque${g.items.length > 1 ? "s" : ""}</h3>
+        <div class="spec">${esc(specPl(g.code) || "référence non renseignée")} · ${g.items[0].w} × ${g.items[0].h} mm${g.items[0].mat.lib ? " · " + g.items[0].mat.lib : ""}</div>
+        ${g.items.map(pl => `<div class="pl-ligne ${(etat.suivi.get(pl.id) || {}).g ? "faite" : ""}">
+          <div class="quoi"><span><b>${pl.box}</b> · lot ${esc(pl.c.lots.join("+"))}</span><span>${esc(pl.ou)}</span></div>
+          ${rendrePlaque(pl)}${coches(pl)}</div>`).join("")}</div>`;
+    }
+  } else {
+    for (const id of etat.choix.keys()){
+      const items = pls.filter(p => p.box === id); if (!items.length) continue;
+      const c = caseDe(id), nom = etat.choix.get(id).nom.trim();
+      h += `<div class="pl-ligne boite-pl"><h4>${id} · App. ${esc(c.appartements.join("+"))} · ${esc(nom || "nom ?")}
+          <small>lot ${esc(c.lots.join("+"))} · ${ETAGE(c.etage)}</small></h4>
+        ${items.map(pl => `<div style="margin:10px 0 4px"><div class="quoi"><span><b>${NOM_PL[pl.code]}</b>${pl.mat.lib ? " · " + pl.mat.lib : ""}</span><span>${esc(pl.ou)}</span></div>${rendrePlaque(pl)}${coches(pl)}</div>`).join("")}</div>`;
+    }
+  }
+  ecran.innerHTML = h;
+  ecran.onclick = e => {
+    const v = e.target.closest("[data-vue]"); if (v){ etat.vuePl = v.dataset.vue; plaques(); return; }
+  };
+  ecran.onchange = e => {
+    const cb = e.target.closest("[data-suivi]"); if (!cb) return;
+    const f = etat.suivi.get(cb.dataset.suivi) || {}; f[cb.dataset.q] = cb.checked; etat.suivi.set(cb.dataset.suivi, f);
+    plaques();
+  };
+  bas.innerHTML = `<button class="btn second" id="retour">Retour</button><button class="btn second" id="imp">Imprimer</button><button class="btn" id="suite">Facture</button>`;
+  document.getElementById("retour").onclick = () => aller(3);
+  document.getElementById("imp").onclick = () => window.print();
+  document.getElementById("suite").onclick = () => aller(5);
+}
+
+/* 6. Brouillon de facture et fichier pour EBP */
+function lignes(){
+  const p = prix(etat.res), out = [];
+  for (const [id, s] of etat.choix){
+    const c = caseDe(id);
+    const prests = PRESTATIONS.filter(x => s.prest.has(x.code) && p[x.cle] != null);
+    if (!prests.length) continue;
+    out.push({case:id, c, nom:s.nom.trim(), prests, total: prests.reduce((t, x) => t + p[x.cle], 0)});
+  }
+  return out;
+}
+
+function facture(){
+  const res = etat.res, ls = lignes(), p = prix(res);
+  const ttc = ls.reduce((t, l) => t + l.total, 0), tva = ttc - ttc / 1.1;
+  const date = new Date().toLocaleDateString("fr-FR");
+  const codes = PRESTATIONS.filter(x => p[x.cle] != null);
+  ecran.innerHTML = `<h2 class="pas-imprime">Brouillon de facture</h2>
+    <p class="aide pas-imprime">Rien n'est numéroté ici : la vraie facture est créée et validée dans EBP, au bureau.</p>
+    <div class="facture">
+      <h3>BROUILLON · ${esc(res.nom)}</h3>
+      <div class="ent"><span>Syndic : <b>${esc(res.syndic)}</b><br>${esc(res.adresse)}, ${esc(res.ville)}</span><span>${date}<br>${esc(etat.bat.nom)}</span></div>
+      <table><thead><tr><th>Relevé</th><th>Descriptif</th>${codes.map(x => `<th class="n">${x.code}</th>`).join("")}<th class="n">Total</th><th class="n">Lot</th></tr></thead>
+      <tbody>${ls.map(l => `<tr><td>${l.case}<br><small>${esc(l.c.appartements.join("+"))}</small></td>
+        <td>${esc(l.nom || "(nom à compléter)")}<br><small>${ETAGE(l.c.etage)}</small></td>
+        ${codes.map(x => `<td class="n">${l.prests.includes(x) ? 1 : ""}</td>`).join("")}
+        <td class="n">${euros(l.total)}</td><td class="n">${esc(l.c.lots.join("+"))}</td></tr>`).join("")}</tbody></table>
+      <div class="tot">TOTAL TTC <b>${euros(ttc)}</b><br><small>dont TVA 10 % : ${euros(tva)}</small></div>
+      ${etat.photo ? `<img class="mini-photo" src="${etat.photo}" alt="Photo jointe">` : ""}
+      <div class="mention">Prix nets de la copropriété : ${codes.map(x => `${x.code} ${euros(p[x.cle])}`).join(" · ")}. Document provisoire, non numéroté.</div>
+    </div>
+    <div class="ok" id="ok"></div>`;
+  bas.innerHTML = `<button class="btn second" id="retour">Retour</button><button class="btn" id="ebp" ${ls.length ? "" : "disabled"}>Envoyer vers EBP</button>`;
+  document.getElementById("retour").onclick = () => aller(4);
+  document.getElementById("ebp").onclick = () => exporterEBP(ls);
+  const imp = document.createElement("button"); imp.className = "lien pas-imprime"; imp.textContent = "Imprimer ou enregistrer en PDF";
+  imp.onclick = () => window.print(); ecran.appendChild(imp);
+  const neuf = document.createElement("button"); neuf.className = "lien pas-imprime"; neuf.style.display = "block"; neuf.textContent = "Nouvelle intervention";
+  neuf.onclick = () => { etat.choix.clear(); etat.bat = null; etat.res = null; etat.ouverte = null; if (etat.photo) URL.revokeObjectURL(etat.photo); etat.photo = null; etat.sansPhoto = false; etat.suivi.clear(); aller(0); };
+  ecran.appendChild(neuf);
+}
+
+function exporterEBP(ls){
+  // Format provisoire : une ligne par article. Les colonnes seront calées sur un export réel de leur EBP.
+  const p = prix(etat.res), date = new Date().toISOString().slice(0,10);
+  const ref = `BR-${etat.bat.id}-${date}`;
+  const tete = ["Reference brouillon","Date","Client (syndic)","Copropriete","Batterie","Case","Lot","Appartement","Etage","Code article","Designation","Quantite","PU TTC","Taux TVA"];
+  const rangs = [];
+  for (const l of ls) for (const x of l.prests){
+    rangs.push([ref, date, etat.res.syndic, etat.res.nom, etat.bat.nom, l.case, l.c.lots.join("+"), l.c.appartements.join("+"), l.c.etage,
+      x.code, `${x.nom}${l.nom ? " : " + l.nom : ""}`, 1, String(p[x.cle]).replace(".", ","), "10"]);
+  }
+  const csv = "﻿" + [tete, ...rangs].map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(";")).join("\r\n");
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([csv], {type:"text/csv;charset=utf-8"}));
+  a.download = `${ref}.csv`; document.body.appendChild(a); a.click(); a.remove();
+  const ok = document.getElementById("ok");
+  ok.textContent = `Fichier ${ref}.csv prêt (${rangs.length} ligne${rangs.length > 1 ? "s" : ""}). Au bureau : EBP, import paramétrable des documents de vente, puis validation de la facture.`;
+  ok.classList.add("visible");
+}
+
+rendre();
+</script>
+</body>
+</html>
