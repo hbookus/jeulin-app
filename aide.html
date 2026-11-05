@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Du relevé à la facture</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --fond:#f6f4ef; --texte:#1f2933; --doux:#5f6878; --carte:#ffffff; --trait:#e3ded3;
+  --bleu:#3e5c73; --bleu-clair:#e3ecf2; --vert:#49817b; --vert-clair:#dcefe9;
+  --jaune:#f2b705; --corail:#d9643f; --corail-clair:#fbe4da; --gris:#8a939c;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--fond);color:var(--texte);font:17px/1.6 "Inter",system-ui,-apple-system,"Segoe UI",sans-serif}
+h1,h2,h3{font-family:"Space Grotesk","Inter",system-ui,sans-serif;letter-spacing:-.01em}
+.hero{min-height:88vh;display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:center;max-width:1100px;margin:0 auto;padding:60px 20px}
+.hero .sur{font-size:14px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--corail)}
+.hero h1{font-size:clamp(38px,6vw,68px);line-height:1.02;margin:10px 0 18px;color:var(--bleu)}
+.hero p{font-size:19px;color:var(--doux);margin:0 0 14px;max-width:560px}
+.hero .chaine{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
+.hero .chaine span{background:var(--carte);border:1px solid var(--trait);border-radius:999px;padding:6px 14px;font-size:14px;font-weight:600}
+.hero .chaine span.fl{background:none;border:none;padding:6px 0;color:var(--gris)}
+.hero svg{width:100%;height:auto}
+.fleche{grid-column:1/-1;text-align:center;color:var(--doux);font-size:14px;animation:hop 1.8s infinite}
+@keyframes hop{50%{transform:translateY(6px)}}
+@media (max-width:820px){.hero{grid-template-columns:1fr;min-height:auto;padding:40px 16px}.hero svg{max-width:360px;margin:0 auto;display:block}}
+.etape{max-width:1100px;margin:0 auto;padding:64px 20px;display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center;border-top:1px solid var(--trait)}
+.etape>*{min-width:0}
+.etape:nth-of-type(odd) .illu{order:-1}
+@media (max-width:820px){.etape{grid-template-columns:1fr;gap:22px;padding:44px 16px}.etape .illu{order:-1}}
+.num{font-family:"Space Grotesk",sans-serif;font-weight:700;color:var(--corail);font-size:15px;letter-spacing:.06em;text-transform:uppercase}
+.etape h2{font-size:clamp(26px,3.6vw,38px);line-height:1.12;margin:6px 0 14px;color:var(--bleu)}
+.etape p{margin:0 0 12px}
+.note{border-left:4px solid var(--jaune);background:var(--carte);border-radius:0 12px 12px 0;padding:12px 16px;font-size:15.5px;margin-top:12px}
+.note.vert{border-color:var(--vert)} .note.corail{border-color:var(--corail)}
+.illu{background:var(--carte);border-radius:22px;padding:24px;box-shadow:0 12px 34px rgba(31,41,51,.08);display:flex;flex-direction:column;justify-content:center;align-items:center;min-height:280px}
+.illu svg{width:100%;max-width:440px;height:auto}
+.apparait{opacity:0;transform:translateY(24px);transition:opacity .7s ease,transform .7s ease}
+.apparait.vu{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){.apparait{opacity:1;transform:none;transition:none}.fleche{animation:none}}
+/* aujourd'hui : la chaîne de recopie */
+.copies{display:flex;flex-direction:column;gap:10px;width:100%;max-width:420px}
+.copie{display:flex;align-items:center;gap:14px;background:var(--fond);border-radius:14px;padding:12px 14px}
+.copie .ic{font-size:26px;width:40px;text-align:center}
+.copie b{display:block}
+.copie small{color:var(--doux)}
+.copie .n{margin-left:auto;font-family:"Space Grotesk",sans-serif;font-weight:700;color:var(--corail);font-size:20px}
+/* boîte et ses 4 coins */
+.boite-geante{position:relative;width:280px;height:200px;border-radius:12px;background:linear-gradient(160deg,#eef0f2,#c9d0d7);border:3px solid #9aa3ad;margin-top:16px}
+.boite-geante .plaque{position:absolute;inset:18px 18px 70px;background:#fffdf6;border:2px solid #b9a77a;border-radius:6px;display:grid;place-items:center;font-weight:700;font-size:19px;letter-spacing:1px}
+.boite-geante .fente{position:absolute;left:70px;right:70px;bottom:44px;height:6px;border-radius:3px;background:rgba(0,0,0,.25)}
+.boite-geante .serrure{position:absolute;left:50%;bottom:16px;width:16px;height:16px;margin-left:-8px;border-radius:50%;background:#7b848d}
+.coin{position:absolute;border:none;border-radius:10px;padding:6px 10px;font:600 15px "Inter",sans-serif;cursor:pointer;color:#fff;box-shadow:0 3px 0 rgba(0,0,0,.15);transition:transform .15s}
+.coin:hover,.coin:focus-visible{transform:scale(1.07)}
+.coin[aria-pressed=true]{outline:3px solid var(--jaune);outline-offset:2px}
+.coin.hg{left:-14px;top:-16px;background:var(--corail)} .coin.hd{right:-14px;top:-16px;background:var(--bleu)}
+.coin.bg{left:-14px;bottom:-16px;background:#6d5aa8} .coin.bd{right:-14px;bottom:-16px;background:var(--vert)}
+.explique{min-height:76px;margin-top:30px;text-align:center;font-size:16px;max-width:380px}
+/* grille de démonstration */
+.demo{display:grid;grid-template-columns:28px repeat(4,1fr);gap:6px;width:100%;max-width:420px}
+.demo .l{display:grid;place-items:center;font-weight:700;color:var(--doux);font-size:14px}
+.demo button{aspect-ratio:1.3;border:2px solid #9aa3ad;border-radius:8px;background:linear-gradient(160deg,#f4f5f6,#d7dde2);font:600 14px "Inter",sans-serif;color:var(--texte);cursor:pointer;line-height:1.15;padding:2px}
+.demo button small{display:block;font-weight:500;font-size:11px;color:var(--doux)}
+.demo button.on{background:var(--vert-clair);border-color:var(--vert)}
+.demo button.libre{background:repeating-linear-gradient(135deg,#e5e9ec 0 7px,#d3d9df 7px 14px);color:var(--gris)}
+.fichebox{width:100%;max-width:420px;margin-top:14px;background:var(--fond);border-radius:12px;padding:12px 14px;font-size:15px;min-height:70px}
+.fichebox dl{display:grid;grid-template-columns:auto 1fr;gap:2px 14px;margin:0}
+.fichebox dt{color:var(--doux)} .fichebox dd{margin:0;font-weight:600}
+.chiffres{display:flex;gap:12px;flex-wrap:wrap;margin:16px 0 4px}
+.chiffre{background:var(--carte);border-radius:14px;padding:10px 16px;border:1px solid var(--trait)}
+.chiffre b{display:block;font-family:"Space Grotesk",sans-serif;font-size:28px;color:var(--bleu);line-height:1.1}
+.chiffre small{color:var(--doux);font-size:13px}
+/* calcul */
+.calc{width:100%;max-width:400px;font-size:16px}
+.calc .ligne{display:flex;justify-content:space-between;padding:8px 2px;border-bottom:1px dashed var(--trait)}
+.calc .ligne.total{border:none;font-weight:700;font-size:22px;color:var(--bleu);padding-top:14px;font-family:"Space Grotesk",sans-serif}
+.calc .ligne span:last-child{font-variant-numeric:tabular-nums}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;justify-content:center}
+.chips button{border:2px solid var(--bleu);background:#fff;color:var(--bleu);border-radius:999px;padding:6px 14px;font:600 15px "Inter",sans-serif;cursor:pointer}
+.chips button[aria-pressed=true]{background:var(--bleu);color:#fff}
+/* bilan */
+.bilan{max-width:1100px;margin:0 auto;padding:70px 20px 40px;border-top:1px solid var(--trait)}
+.bilan h2{font-size:clamp(28px,4vw,42px);color:var(--bleu);margin:0 0 24px}
+.cartes{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+.carte{background:var(--carte);border-radius:18px;padding:18px 20px;box-shadow:0 8px 24px rgba(31,41,51,.06)}
+.carte .em{font-size:30px}
+.carte h3{margin:6px 0 6px;font-size:19px}
+.carte p{margin:0;font-size:15.5px;color:var(--doux)}
+table.suite{width:100%;border-collapse:collapse;background:var(--carte);border-radius:16px;overflow:hidden;font-size:15.5px;margin-top:10px}
+table.suite th,table.suite td{padding:12px 14px;text-align:left;vertical-align:top;border-bottom:1px solid var(--trait)}
+table.suite th{background:var(--bleu-clair);font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--bleu)}
+.tag{display:inline-block;border-radius:999px;padding:2px 10px;font-size:12.5px;font-weight:600;white-space:nowrap}
+.tag.fait{background:var(--vert-clair);color:#24564f}
+.tag.vous{background:var(--corail-clair);color:#8a3415}
+.tag.nous{background:var(--bleu-clair);color:var(--bleu)}
+@media (max-width:640px){table.suite thead{display:none}table.suite tr{display:block;border-bottom:1px solid var(--trait);padding:8px 0}table.suite td{display:block;border:none;padding:4px 14px}}
+.resume{max-width:1100px;margin:0 auto;padding:30px 20px 90px}
+.resume ol{counter-reset:e;list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.resume li{counter-increment:e;background:var(--bleu);color:#fff;border-radius:14px;padding:14px}
+.resume li::before{content:counter(e);display:block;font-family:"Space Grotesk",sans-serif;font-size:26px;font-weight:700;color:var(--jaune)}
+.resume li b{display:block}
+.resume li small{opacity:.85}
+nav.points{position:fixed;right:14px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:9px;z-index:3}
+nav.points a{width:10px;height:10px;border-radius:50%;background:#d6cfbf;display:block}
+nav.points a.actif{background:var(--bleu);transform:scale(1.35)}
+@media (max-width:820px){nav.points{display:none}}
+</style>
+</head>
+<body>
+
+<nav class="points" id="points" aria-label="Étapes"></nav>
+
+<section class="hero" id="debut">
+  <div>
+    <div class="sur">SARL Jeulin · proposition · novembre 2026</div>
+    <h1>Du relevé<br>à la facture</h1>
+    <p>Un téléphone, une photo de la batterie et une base qui connaît déjà chaque boîte : l'intervention est relevée sur place, et la facture part vers EBP sans rien recopier.</p>
+    <p>Voici l'état des lieux, puis le processus en sept étapes, avec un prototype qui fonctionne déjà sur les vraies données de trois résidences.</p>
+    <div class="chaine"><span>1 · Photo</span><span>2 · Base</span><span>3 · Plaques</span><span>4 · Brouillon</span><span>5 · EBP</span></div>
+  </div>
+  <svg viewBox="0 0 320 230" aria-hidden="true">
+    <rect x="30" y="30" width="200" height="150" rx="10" fill="#7d8791"/>
+    <g fill="#e9ecef" stroke="#9aa3ad" stroke-width="2">
+      <rect x="40" y="40" width="58" height="40" rx="4"/><rect x="101" y="40" width="58" height="40" rx="4"/><rect x="162" y="40" width="58" height="40" rx="4"/>
+      <rect x="40" y="85" width="58" height="40" rx="4"/><rect x="101" y="85" width="58" height="40" rx="4" fill="#dcefe9" stroke="#49817b"/><rect x="162" y="85" width="58" height="40" rx="4"/>
+      <rect x="40" y="130" width="58" height="40" rx="4"/><rect x="101" y="130" width="58" height="40" rx="4"/><rect x="162" y="130" width="58" height="40" rx="4"/>
+    </g>
+    <g fill="#fffdf6" stroke="#b9a77a"><rect x="47" y="46" width="44" height="12" rx="2"/><rect x="108" y="46" width="44" height="12" rx="2"/><rect x="169" y="46" width="44" height="12" rx="2"/>
+      <rect x="47" y="91" width="44" height="12" rx="2"/><rect x="108" y="91" width="44" height="12" rx="2"/><rect x="169" y="91" width="44" height="12" rx="2"/>
+      <rect x="47" y="136" width="44" height="12" rx="2"/><rect x="108" y="136" width="44" height="12" rx="2"/><rect x="169" y="136" width="44" height="12" rx="2"/></g>
+    <rect x="200" y="70" width="96" height="150" rx="16" fill="#1f2933"/><rect x="207" y="84" width="82" height="118" rx="4" fill="#e3ecf2"/>
+    <rect x="215" y="100" width="66" height="50" rx="3" fill="#7d8791"/>
+    <path d="M215 100h66v50h-66z M237 100v50 M259 100v50 M215 117h66 M215 133h66" fill="none" stroke="#f2b705" stroke-width="1.6"/>
+    <rect x="215" y="160" width="66" height="14" rx="7" fill="#3e5c73"/><rect x="215" y="180" width="44" height="8" rx="4" fill="#9aa3ad"/>
+  </svg>
+  <div class="fleche">Faites défiler pour suivre le processus</div>
+</section>
+
+<section class="etape apparait" id="aujourdhui">
+  <div>
+    <div class="num">Étape 0 · aujourd'hui</div>
+    <h2>Les mêmes numéros, recopiés à chaque étape</h2>
+    <p>Aujourd'hui, les noms sont relevés à la main sur le bordereau de travail, qui devient ensuite la facture. Entre le plan, le bordereau et EBP, les mêmes numéros de lot, de case et d'appartement sont réécrits plusieurs fois.</p>
+    <p>Chaque recopie prend du temps et peut introduire une erreur : un lot inversé, et une plaque est gravée pour la mauvaise boîte.</p>
+    <div class="note corail">En transcrivant vos plans, nous avons déjà trouvé un lot écrit deux fois et un autre oublié dans un tableau d'étages, ainsi que quatre boîtes sans étage noté. Rien de grave, mais c'est exactement le genre d'erreur que la recopie fabrique.</div>
+  </div>
+  <div class="illu">
+    <div class="copies">
+      <div class="copie"><span class="ic">✏️</span><span><b>Le plan de la batterie</b><small>relevé à la main sur place</small></span><span class="n">×1</span></div>
+      <div class="copie"><span class="ic">📋</span><span><b>Le bordereau de travail</b><small>noms, cases, lots, plaques à poser</small></span><span class="n">×2</span></div>
+      <div class="copie"><span class="ic">🧾</span><span><b>Le bordereau devient facture</b><small>complété à la main avec les prix</small></span><span class="n">×2</span></div>
+      <div class="copie"><span class="ic">💻</span><span><b>La saisie dans EBP</b><small>tout est retapé au bureau</small></span><span class="n">×3</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="etape apparait" id="coins">
+  <div>
+    <div class="num">Étape 1</div>
+    <h2>Une boîte, quatre informations</h2>
+    <p>Vos plans notent quatre informations par boîte, une dans chaque coin. C'est cette convention que la base reprend telle quelle : rien ne change dans votre façon de lire une batterie.</p>
+    <p><b>Cliquez sur les coins</b> pour le détail.</p>
+  </div>
+  <div class="illu">
+    <div class="boite-geante">
+      <div class="plaque">MARTIN Léa</div><div class="fente"></div><div class="serrure"></div>
+      <button class="coin hg" data-txt="<b>Numéro de lot</b> (116) : l'identifiant de l'appartement dans le règlement de copropriété. C'est la clé commune avec le syndic et les factures.">116</button>
+      <button class="coin hd" data-txt="<b>Numéro d'appartement</b> (503) : celui de la porte. Il contient souvent l'étage (5 = bâtiment 5, 0 = rez-de-chaussée), ce qui permet un contrôle automatique.">503</button>
+      <button class="coin bg" data-txt="<b>Numéro d'interphone</b> (3) : noté sur certains plans seulement, utile pour poser l'étiquette d'interphone au bon endroit.">☎ 3</button>
+      <button class="coin bd" data-txt="<b>Étage</b> (RC = rez-de-chaussée) : il figure sur la plaque de boîte et sert à vérifier la cohérence avec le tableau des étages.">RC</button>
+    </div>
+    <div class="explique" id="explique">Cliquez sur un coin coloré</div>
+  </div>
+</section>
+
+<section class="etape apparait" id="base">
+  <div>
+    <div class="num">Étape 2</div>
+    <h2>Une base qui connaît chaque boîte</h2>
+    <p>Les plans de vos batteries ont été transcrits dans une base. Chaque boîte y est repérée comme sur le papier : colonne (A, B, C…) et rangée (1, 2, 3… depuis le haut). A1, c'est la boîte en haut à gauche.</p>
+    <div class="chiffres">
+      <div class="chiffre"><b>3</b><small>résidences</small></div>
+      <div class="chiffre"><b>8</b><small>batteries</small></div>
+      <div class="chiffre"><b>168</b><small>boîtes attribuées</small></div>
+    </div>
+    <p>La base vérifie aussi la cohérence toute seule : lots en double, étages manquants, appartements qui ne correspondent pas à l'étage noté. C'est ainsi que les erreurs de l'étape 0 ont été repérées.</p>
+    <div class="note">Essayez : <b>cliquez sur une boîte</b> de la batterie du n° 277 à Vésegnin, à côté.</div>
+  </div>
+  <div class="illu">
+    <div class="demo" id="demo"></div>
+    <div class="fichebox" id="fichebox">Choisissez une boîte.</div>
+  </div>
+</section>
+
+<section class="etape apparait" id="photo">
+  <div>
+    <div class="num">Étape 3 · sur place</div>
+    <h2>Une photo, et la grille se pose dessus</h2>
+    <p>Devant la batterie, on ouvre une page web sur le téléphone (rien à installer), on choisit la résidence et on prend le meuble en photo.</p>
+    <p>On glisse ensuite deux poignées sur les coins de la batterie : la grille de la base se cale sur la photo, et chaque case de l'image correspond à une boîte connue.</p>
+    <div class="note vert">À terme, un petit QR code collé dans chaque meuble ouvrira directement la bonne batterie. Il est prévu, pas encore en place.</div>
+  </div>
+  <div class="illu">
+    <svg viewBox="0 0 400 270" aria-hidden="true">
+      <rect x="110" y="10" width="180" height="250" rx="26" fill="#1f2933"/>
+      <rect x="120" y="34" width="160" height="200" rx="6" fill="#cfd5db"/>
+      <rect x="132" y="70" width="136" height="110" rx="4" fill="#7d8791"/>
+      <g fill="#e9ecef"><rect x="138" y="76" width="38" height="30" rx="2"/><rect x="181" y="76" width="38" height="30" rx="2"/><rect x="224" y="76" width="38" height="30" rx="2"/>
+      <rect x="138" y="111" width="38" height="30" rx="2"/><rect x="181" y="111" width="38" height="30" rx="2"/><rect x="224" y="111" width="38" height="30" rx="2"/>
+      <rect x="138" y="146" width="38" height="30" rx="2"/><rect x="181" y="146" width="38" height="30" rx="2"/><rect x="224" y="146" width="38" height="30" rx="2"/></g>
+      <rect x="135" y="73" width="130" height="106" fill="none" stroke="#f2b705" stroke-width="3"/>
+      <path d="M178 73v106M221 73v106M135 108h130M135 143h130" stroke="#f2b705" stroke-width="1.5"/>
+      <circle cx="135" cy="73" r="8" fill="#f2b705" stroke="#fff" stroke-width="2"/><circle cx="265" cy="179" r="8" fill="#f2b705" stroke="#fff" stroke-width="2"/>
+      <circle cx="200" cy="248" r="7" fill="#555b6e"/>
+      <text x="200" y="56" text-anchor="middle" font-size="12" fill="#3e5c73" font-weight="600">Pose la grille sur la photo</text>
+    </svg>
+  </div>
+</section>
+
+<section class="etape apparait" id="choix">
+  <div>
+    <div class="num">Étape 4</div>
+    <h2>On touche les boîtes, on tape les noms</h2>
+    <p>On sélectionne à l'écran les boîtes concernées. Pour chacune, on coche ce qu'on pose (plaque de boîte aux lettres, interphone, porte, stop pub, selon le contrat de la résidence) et on saisit le nom à graver.</p>
+    <p>Le lot, l'appartement, l'étage et l'interphone viennent de la base : <b>plus aucun numéro n'est recopié</b>.</p>
+  </div>
+  <div class="illu">
+    <svg viewBox="0 0 400 260" aria-hidden="true">
+      <rect x="40" y="30" width="320" height="200" rx="18" fill="#f4f6f8"/>
+      <rect x="60" y="50" width="280" height="70" rx="12" fill="#fff" stroke="#d5d9e0"/>
+      <text x="76" y="76" font-size="16" font-weight="700" fill="#1f2933">A1 · App. 503</text>
+      <text x="200" y="76" font-size="11" fill="#5f6878">lot 116 · RC · interphone 3</text>
+      <rect x="76" y="88" width="62" height="22" rx="11" fill="#3e5c73"/><text x="107" y="104" font-size="11" fill="#fff" text-anchor="middle">Boîte</text>
+      <rect x="144" y="88" width="78" height="22" rx="11" fill="#3e5c73"/><text x="183" y="104" font-size="11" fill="#fff" text-anchor="middle">Interphone</text>
+      <rect x="228" y="88" width="56" height="22" rx="11" fill="#fff" stroke="#d5d9e0"/><text x="256" y="104" font-size="11" fill="#1f2933" text-anchor="middle">Porte</text>
+      <rect x="60" y="134" width="280" height="44" rx="10" fill="#fff" stroke="#3e5c73" stroke-width="2"/>
+      <text x="76" y="162" font-size="17" fill="#1f2933" font-weight="600">MARTIN LÉA</text>
+      <rect x="196" y="146" width="2" height="22" fill="#3e5c73"><animate attributeName="opacity" values="1;0;1" dur="1s" repeatCount="indefinite"/></rect>
+      <rect x="230" y="192" width="110" height="26" rx="8" fill="#3e5c73"/><text x="285" y="210" text-anchor="middle" font-size="12" fill="#fff" font-weight="600">Voir la facture</text>
+    </svg>
+  </div>
+</section>
+
+<section class="etape apparait" id="plaques">
+  <div>
+    <div class="num">Étape 5 · à l'atelier</div>
+    <h2>Le bon de gravure : chaque plaque, prête à couper</h2>
+    <p>Avant la facture, le téléphone produit l'<b>état récapitulatif des plaques à graver</b>. Pour chaque ligne du bordereau, on voit toutes les plaques à faire : boîte aux lettres, porte, interphone, stop pub, chacune à ses dimensions et avec son texte.</p>
+    <p>Deux vues : <b>Atelier</b>, qui regroupe les plaques par type pour couper et graver en série, et <b>Pose</b>, qui les regroupe par boîte avec l'endroit exact où les mettre (boîte A1, porte de l'appartement 503 au rez-de-chaussée, interphone n° 3). Chaque plaque se coche « gravée » puis « posée ».</p>
+    <div class="note">Les références viennent de la fiche de la résidence, et chaque plaque est dessinée dans sa finition : AN argent écriture noire, ABN argent brossé écriture noire, NB noire écriture blanche. La plaque stop pub porte « STOP PUB » ou « PAS DE PUB SVP », au choix. Un nom oublié est signalé avant de graver.</div>
+  </div>
+  <div class="illu">
+    <svg viewBox="0 0 420 300" aria-hidden="true">
+      <defs><linearGradient id="alu" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#eceef1"/><stop offset=".55" stop-color="#c7ccd2"/><stop offset="1" stop-color="#e1e4e8"/></linearGradient></defs>
+      <text x="20" y="28" font-size="13" font-weight="700" fill="#3e5c73">A1 · App. 503 · lot 116 · RC</text>
+      <text x="20" y="56" font-size="11" fill="#5f6878">Boîte aux lettres · 98 × 24 mm</text><text x="265" y="56" font-size="11" fill="#5f6878" text-anchor="end">Boîte A1</text>
+      <rect x="20" y="64" width="245" height="60" rx="2" fill="url(#alu)" stroke="#9aa3ad"/><text x="142" y="103" font-size="26" font-weight="700" text-anchor="middle" fill="#14181d" letter-spacing="1.5">MARTIN LÉA</text>
+      <text x="20" y="150" font-size="11" fill="#5f6878">Porte · 98 × 40 mm</text><text x="265" y="150" font-size="11" fill="#5f6878" text-anchor="end">app. 503, RC</text>
+      <rect x="20" y="158" width="245" height="80" rx="2" fill="url(#alu)" stroke="#9aa3ad"/><text x="142" y="208" font-size="28" font-weight="700" text-anchor="middle" fill="#14181d" letter-spacing="1.5">MARTIN LÉA</text>
+      <text x="290" y="150" font-size="11" fill="#5f6878">Interphone n° 3</text><text x="290" y="220" font-size="11" fill="#5f6878">52 × 23 mm</text>
+      <rect x="290" y="158" width="110" height="48" rx="2" fill="url(#alu)" stroke="#9aa3ad"/><text x="345" y="188" font-size="14" font-weight="700" text-anchor="middle" fill="#14181d">MARTIN LÉA</text>
+      <g font-size="12" fill="#1f2933"><rect x="20" y="258" width="16" height="16" rx="3" fill="#49817b"/><path d="M24 266l3 3 6-7" stroke="#fff" stroke-width="2" fill="none"/><text x="42" y="271">Gravée</text>
+      <rect x="110" y="258" width="16" height="16" rx="3" fill="#fff" stroke="#9aa3ad"/><text x="132" y="271">Posée</text></g>
+    </svg>
+  </div>
+</section>
+
+<section class="etape apparait" id="calcul">
+  <div>
+    <div class="num">Étape 6</div>
+    <h2>Le brouillon de facture se calcule seul</h2>
+    <p>Les prix nets de chaque copropriété sont dans la base. Le téléphone produit un brouillon avec les mêmes colonnes que votre formulaire actuel (relevé, BL, INTER, PORTE, PUB, total, lot), le total TTC et la TVA à 10 % incluse.</p>
+    <p>Exemple avec les tarifs de Vésegnin : <b>choisissez les poses</b> de la boîte A1.</p>
+    <div class="note">La photo de la batterie est jointe au brouillon : elle sert de preuve de pose en cas de question du syndic.</div>
+  </div>
+  <div class="illu">
+    <div class="chips" id="chips">
+      <button data-p="27" data-c="BL" data-n="Plaque de boîte aux lettres" aria-pressed="true">Boîte 27 €</button>
+      <button data-p="15" data-c="INTER" data-n="Étiquette d'interphone" aria-pressed="true">Interphone 15 €</button>
+      <button data-p="19" data-c="PORTE" data-n="Plaque de porte" aria-pressed="false">Porte 19 €</button>
+    </div>
+    <div class="calc" id="calc"></div>
+  </div>
+</section>
+
+<section class="etape apparait" id="ebp">
+  <div>
+    <div class="num">Étape 7 · au bureau</div>
+    <h2>La vraie facture naît dans EBP</h2>
+    <p>Le téléphone ne crée pas de facture définitive. Il prépare un <b>fichier d'import pour EBP</b>, avec le syndic, la copropriété et une ligne par article.</p>
+    <p>Au bureau, on importe ce fichier dans EBP, on contrôle, et on valide. C'est EBP qui attribue le <b>numéro officiel</b> : la numérotation reste continue et conforme, et la comptabilité ne change pas.</p>
+    <div class="note">Le format exact du fichier sera calé sur votre version d'EBP. Si votre version en ligne le permet, l'envoi pourra même se faire directement, sans fichier.</div>
+  </div>
+  <div class="illu">
+    <svg viewBox="0 0 400 260" aria-hidden="true">
+      <rect x="20" y="70" width="80" height="140" rx="14" fill="#1f2933"/><rect x="28" y="84" width="64" height="104" rx="4" fill="#e3ecf2"/>
+      <rect x="36" y="96" width="48" height="6" rx="3" fill="#9aa3ad"/><rect x="36" y="108" width="36" height="6" rx="3" fill="#9aa3ad"/><rect x="36" y="160" width="48" height="16" rx="6" fill="#3e5c73"/>
+      <path d="M112 140h80" stroke="#d9643f" stroke-width="4" stroke-linecap="round"><animate attributeName="stroke-dasharray" values="0 200;80 200" dur="1.6s" repeatCount="indefinite"/></path>
+      <text x="152" y="128" text-anchor="middle" font-size="11" fill="#d9643f" font-weight="600">fichier .csv</text>
+      <rect x="200" y="60" width="160" height="110" rx="8" fill="#3e5c73"/><rect x="210" y="70" width="140" height="90" rx="4" fill="#fff"/>
+      <text x="280" y="92" text-anchor="middle" font-size="14" font-weight="700" fill="#3e5c73">EBP</text>
+      <rect x="226" y="102" width="108" height="7" rx="3" fill="#d5d9e0"/><rect x="226" y="116" width="80" height="7" rx="3" fill="#d5d9e0"/>
+      <rect x="226" y="132" width="60" height="16" rx="8" fill="#49817b"/><text x="256" y="144" text-anchor="middle" font-size="10" fill="#fff">Valider</text>
+      <rect x="262" y="170" width="36" height="16" fill="#7d8791"/><rect x="240" y="186" width="80" height="8" rx="4" fill="#7d8791"/>
+      <g transform="rotate(6 330 215)"><rect x="296" y="188" width="78" height="58" rx="4" fill="#fffdf6" stroke="#b9a77a"/><text x="335" y="210" text-anchor="middle" font-size="9" fill="#1f2933">FACTURE</text><text x="335" y="226" text-anchor="middle" font-size="11" font-weight="700" fill="#d9643f">n° officiel</text><text x="335" y="238" text-anchor="middle" font-size="8" fill="#5f6878">vers le syndic</text></g>
+    </svg>
+  </div>
+</section>
+
+<section class="bilan apparait" id="bilan">
+  <h2>Ce que ça change pour l'entreprise</h2>
+  <div class="cartes">
+    <div class="carte"><div class="em">🎯</div><h3>Moins d'erreurs</h3><p>Les numéros sont saisis une seule fois, dans la base, et contrôlés automatiquement.</p></div>
+    <div class="carte"><div class="em">⏱️</div><h3>Moins de ressaisie</h3><p>Le relevé de terrain devient directement la facture : plus de facture manuscrite à retaper dans EBP.</p></div>
+    <div class="carte"><div class="em">📸</div><h3>Une trace de chaque pose</h3><p>Chaque intervention garde sa photo, sa date et ses lignes : utile face aux syndics.</p></div>
+    <div class="carte"><div class="em">🗂️</div><h3>Un patrimoine transmissible</h3><p>La connaissance des résidences n'est plus seulement dans des classeurs et dans les têtes : un atout pour la reprise.</p></div>
+  </div>
+
+  <h2 style="margin-top:56px">Où en est-on, et la suite</h2>
+  <table class="suite">
+    <thead><tr><th>Élément</th><th>État</th><th>Qui</th></tr></thead>
+    <tbody>
+      <tr><td><b>Base des batteries</b><br>3 résidences transcrites depuis vos plans, avec contrôles de cohérence.</td><td><span class="tag fait">fait</span></td><td>HOCUSBOOKUS</td></tr>
+      <tr><td><b>Prototype téléphone</b><br>Photo, grille, sélection, bon de gravure, brouillon de facture, fichier d'import.</td><td><span class="tag fait">fait, à tester</span></td><td>HOCUSBOOKUS</td></tr>
+      <tr><td><b>Vérifier les points relevés</b><br>Lots en double ou manquants, étages non notés, sur place ou avec le syndic.</td><td><span class="tag vous">à faire</span></td><td>Jeulin</td></tr>
+      <tr><td><b>Version d'EBP et exemples</b><br>Nom et version du logiciel, export d'une facture et de la liste des articles.</td><td><span class="tag vous">à fournir</span></td><td>Jeulin</td></tr>
+      <tr><td><b>Caler l'import EBP</b><br>Adapter le fichier à votre EBP et le tester ensemble sur une vraie intervention.</td><td><span class="tag nous">ensuite</span></td><td>Ensemble</td></tr>
+      <tr><td><b>Mise en service</b><br>Accès sécurisé depuis le téléphone, ajout des autres résidences, QR codes dans les meubles.</td><td><span class="tag nous">ensuite</span></td><td>Ensemble</td></tr>
+      <tr><td><b>Pistes à tester</b><br>Lecture automatique des plans manuscrits et des bons de syndic pour remplir la base plus vite.</td><td><span class="tag nous">à évaluer</span></td><td>HOCUSBOOKUS</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="resume apparait" id="resume">
+  <ol>
+    <li><b>Choisir</b><small>la résidence et la batterie</small></li>
+    <li><b>Photographier</b><small>le meuble</small></li>
+    <li><b>Caler</b><small>la grille sur la photo</small></li>
+    <li><b>Sélectionner</b><small>boîtes, poses, noms</small></li>
+    <li><b>Graver et poser</b><small>d'après le bon de gravure</small></li>
+    <li><b>Vérifier</b><small>le brouillon calculé</small></li>
+    <li><b>Valider</b><small>la facture dans EBP</small></li>
+  </ol>
+</section>
+
+<script>
+const vues = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) e.target.classList.add("vu"); }), {threshold:.12});
+document.querySelectorAll(".apparait").forEach(s => vues.observe(s));
+
+const sections = [...document.querySelectorAll("section[id]")];
+const points = document.getElementById("points");
+points.innerHTML = sections.map(s => `<a href="#${s.id}" aria-label="${(s.querySelector("h1,h2")||{}).textContent || s.id}"></a>`).join("");
+const actif = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting)
+  points.querySelectorAll("a").forEach(a => a.classList.toggle("actif", a.getAttribute("href") === "#" + e.target.id)); }), {threshold:.4});
+sections.forEach(s => actif.observe(s));
+
+// Les quatre coins
+const explique = document.getElementById("explique");
+document.querySelectorAll(".coin").forEach(c => c.onclick = () => {
+  document.querySelectorAll(".coin").forEach(x => x.setAttribute("aria-pressed", x === c));
+  explique.innerHTML = c.dataset.txt;
+});
+
+// Batterie de démonstration : Vésegnin n° 277, Bât 5 (données de la base)
+const GRILLE = [
+  [{l:"116",a:"503",e:"RC",i:"3"},{l:"117",a:"511",e:"1er",i:"4"},{l:"122",a:"523",e:"2e",i:"7"},{l:"123",a:"531",e:"3e",i:"10"}],
+  [{l:"115",a:"502",e:"RC",i:"2"},{l:"118",a:"512",e:"1er",i:"5"},{l:"121",a:"522",e:"2e",i:"8"},{libre:true,i:"11",note:"01/26 occupée par Victor"}],
+  [{l:"114",a:"501",e:"RC",i:"1"},{l:"119",a:"513",e:"1er",i:"6"},{l:"120",a:"521",e:"2e",i:"9"},{libre:true,i:"12"}],
+];
+const COLS = ["A","B","C","D"];
+const demo = document.getElementById("demo"), fiche = document.getElementById("fichebox");
+let h = `<span></span>` + COLS.map(c => `<span class="l">${c}</span>`).join("");
+GRILLE.forEach((rang, r) => {
+  h += `<span class="l">${r+1}</span>` + rang.map((b, c) => b.libre
+    ? `<button class="libre" data-c="${c}" data-r="${r}">libre</button>`
+    : `<button data-c="${c}" data-r="${r}">${b.a}<small>lot ${b.l}</small></button>`).join("");
+});
+demo.innerHTML = h;
+demo.onclick = e => {
+  const b = e.target.closest("button"); if (!b) return;
+  demo.querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b));
+  const c = +b.dataset.c, r = +b.dataset.r, d = GRILLE[r][c], ref = COLS[c] + (r+1);
+  fiche.innerHTML = d.libre
+    ? `<dl><dt>Case</dt><dd>${ref}</dd><dt>État</dt><dd>libre${d.note ? " (" + d.note + ")" : ""}</dd><dt>Interphone</dt><dd>${d.i}</dd></dl>`
+    : `<dl><dt>Case</dt><dd>${ref}</dd><dt>Lot</dt><dd>${d.l}</dd><dt>Appartement</dt><dd>${d.a}</dd><dt>Étage</dt><dd>${d.e}</dd><dt>Interphone</dt><dd>${d.i}</dd></dl>`;
+};
+
+// Calcul du brouillon
+const chips = document.getElementById("chips"), calc = document.getElementById("calc");
+const euros = v => v.toLocaleString("fr-FR", {style:"currency", currency:"EUR"});
+function compter(){
+  const choisis = [...chips.querySelectorAll("button[aria-pressed=true]")];
+  const total = choisis.reduce((t, b) => t + +b.dataset.p, 0), tva = total - total / 1.1;
+  calc.innerHTML = `<div class="ligne" style="color:var(--doux);font-size:14px"><span>A1 · lot 116 · app. 503 · MARTIN Léa</span><span></span></div>`
+    + choisis.map(b => `<div class="ligne"><span>${b.dataset.c} · ${b.dataset.n}</span><span>${euros(+b.dataset.p)}</span></div>`).join("")
+    + `<div class="ligne total"><span>Total TTC</span><span>${euros(total)}</span></div>`
+    + `<div class="ligne" style="border:none;color:var(--doux);font-size:14px"><span>dont TVA 10 %</span><span>${euros(tva)}</span></div>`;
+}
+chips.onclick = e => { const b = e.target.closest("button"); if (!b) return; b.setAttribute("aria-pressed", b.getAttribute("aria-pressed") !== "true"); compter(); };
+compter();
+</script>
+</body>
+</html>
